@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "VelocityGrid.Sample.Basic (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "VelocityGrid.Sample.Basic (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

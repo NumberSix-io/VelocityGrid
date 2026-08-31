@@ -1,0 +1,24 @@
+<Solution>
+  <Configurations>
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="VelocityGrid.Managed.Tests/VelocityGrid.Managed.Tests.csproj">
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+    <Deploy />
+  </Project>
+  <Project Path="VelocityGrid.Managed/VelocityGrid.Managed.csproj" />
+  <Project Path="VelocityGrid.Native.Tests/VelocityGrid.Native.Tests.vcxproj" Id="3f4a5e88-e47a-4498-b45e-fb344b6f3e17">
+    <Deploy />
+  </Project>
+  <Project Path="VelocityGrid.Native/VelocityGrid.Native.vcxproj" Id="4dbf7613-b3df-4e99-adec-45b3f18fcfd8" />
+  <Project Path="VelocityGrid.Sample.Basic/VelocityGrid.Sample.Basic.csproj">
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+    <Deploy />
+  </Project>
+</Solution>

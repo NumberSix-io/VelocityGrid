@@ -1,0 +1,21 @@
+namespace VelocityGrid_Native
+{
+    delegate void PageRequestedHandler(Int64 startRow, Int32 rowCount, UInt64 requestId, UInt64 generation);
+    delegate void PageCanceledHandler(UInt64 requestId);
+
+    [default_interface]
+    runtimeclass VelocityGrid
+    {
+        VelocityGrid();
+        Int64 RowCount;
+        Double RowHeight;
+        Int64 FirstVisibleRow{ get; };
+        Int64 LastVisibleRow{ get; };
+        Microsoft.UI.Xaml.UIElement View{ get; };
+        Boolean ExternalProviderEnabled;
+        event PageRequestedHandler PageRequested;
+        event PageCanceledHandler PageCanceled;
+        void CompletePage(UInt64 requestId, UInt64 generation, Int64 startRow, Int32 rowCount, String[] values);
+        void FailPage(UInt64 requestId, UInt64 generation, String message);
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "VelocityGrid.Managed.Tests (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "VelocityGrid.Managed.Tests (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
