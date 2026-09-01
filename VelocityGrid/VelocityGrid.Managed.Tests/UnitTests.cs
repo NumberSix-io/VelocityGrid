@@ -65,5 +65,72 @@ namespace VelocityGrid.Managed.Tests
 
             Assert.AreEqual(1_000, grid.RowCount);
         }
+
+        [TestMethod]
+        public void ColumnRejectsWidthsBelowMinimum()
+        {
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+                new VelocityGrid.Managed.VelocityGridColumn("Invalid", 20));
+        }
+
+        [UITestMethod]
+        public void ColumnsRoundTripThroughManagedControl()
+        {
+            var grid = new VelocityGrid.Managed.VelocityGridControl();
+            grid.SetColumns(new[]
+            {
+                new VelocityGrid.Managed.VelocityGridColumn("Name", 180),
+                new VelocityGrid.Managed.VelocityGridColumn(
+                    "Value", 100, VelocityGrid.Managed.VelocityGridTextAlignment.Right)
+            });
+
+            Assert.AreEqual(2, grid.Columns.Count);
+            Assert.AreEqual("Name", grid.Columns[0].Header);
+            Assert.AreEqual(100, grid.Columns[1].Width);
+            Assert.AreEqual(-1, grid.SelectedRow);
+            Assert.AreEqual(-1, grid.SelectedColumn);
+        }
+
+        [UITestMethod]
+        public void PerformanceMetricsCanBeReset()
+        {
+            var grid = new VelocityGrid.Managed.VelocityGridControl { RowCount = 1_000_000 };
+            grid.ScrollToRow(500_000);
+            Assert.AreEqual(500_000, grid.FirstVisibleRow);
+            grid.ResetPerformanceMetrics();
+            Assert.AreEqual(0UL, grid.PerformanceMetrics.FrameCount);
+            Assert.AreEqual(0UL, grid.PerformanceMetrics.CacheHits);
+            Assert.AreEqual(0UL, grid.PerformanceMetrics.CacheMisses);
+        }
+
+        [TestMethod]
+        public void CellUpdateValidatesCoordinates()
+        {
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+                new VelocityGrid.Managed.VelocityGridCellUpdate(-1, 0, "value"));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+                new VelocityGrid.Managed.VelocityGridCellUpdate(0, 10, "value"));
+        }
+
+        [TestMethod]
+        public void PageFormattingMustMatchCellCount()
+        {
+            Assert.ThrowsExactly<ArgumentException>(() => new VelocityGrid.Managed.VelocityGridPage(
+                0, 1, new string[VelocityGrid.Managed.VelocityGridControl.ColumnCount],
+                new VelocityGrid.Managed.VelocityGridCellFormat[1]));
+        }
+
+        [TestMethod]
+        public async Task SyntheticProviderSuppliesCompactFormatting()
+        {
+            var provider = new VelocityGrid.Managed.SyntheticDataProvider(100);
+            var page = await provider.GetRowsAsync(
+                new VelocityGrid.Managed.VelocityGridRange(0, 1),
+                new VelocityGrid.Managed.VelocityGridFetchContext(1, 1), default);
+
+            Assert.AreEqual(VelocityGrid.Managed.VelocityGridIcon.Up, page.Formats[5].Icon);
+            Assert.AreEqual(page.Values.Length, page.Formats.Length);
+        }
+
     }
 }

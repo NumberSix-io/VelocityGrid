@@ -10,21 +10,25 @@ public readonly record struct VelocityGridFetchContext(ulong RequestId, ulong Ge
 
 public sealed class VelocityGridPage
 {
-    public VelocityGridPage(long startRow, int rowCount, string[] values)
+    public VelocityGridPage(long startRow, int rowCount, string[] values, VelocityGridCellFormat[]? formats = null)
     {
         ArgumentNullException.ThrowIfNull(values);
         if (startRow < 0) throw new ArgumentOutOfRangeException(nameof(startRow));
         if (rowCount <= 0) throw new ArgumentOutOfRangeException(nameof(rowCount));
         if (values.Length != checked(rowCount * VelocityGridControl.ColumnCount))
             throw new ArgumentException("A page must contain exactly ten values per row.", nameof(values));
+        if (formats is not null && formats.Length != values.Length)
+            throw new ArgumentException("Cell formatting must contain one entry per value.", nameof(formats));
         StartRow = startRow;
         RowCount = rowCount;
         Values = values;
+        Formats = formats ?? new VelocityGridCellFormat[values.Length];
     }
 
     public long StartRow { get; }
     public int RowCount { get; }
     public string[] Values { get; }
+    public VelocityGridCellFormat[] Formats { get; }
 }
 
 public interface IVelocityGridDataProvider
@@ -48,14 +52,25 @@ public sealed class SyntheticDataProvider(long rowCount = 10_000_000) : IVelocit
     {
         cancellationToken.ThrowIfCancellationRequested();
         var values = new string[checked(range.RowCount * VelocityGridControl.ColumnCount)];
+        var formats = new VelocityGridCellFormat[values.Length];
         for (var rowOffset = 0; rowOffset < range.RowCount; rowOffset++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var row = range.StartRow + rowOffset;
             for (var column = 0; column < VelocityGridControl.ColumnCount; column++)
-                values[rowOffset * VelocityGridControl.ColumnCount + column] = $"R{row}  C{column + 1}";
+            {
+                var index = rowOffset * VelocityGridControl.ColumnCount + column;
+                values[index] = $"R{row}  C{column + 1}";
+                if (column == 5)
+                    formats[index] = (row % 3) switch
+                    {
+                        0 => new(VelocityGridForeground.Positive, VelocityGridBackground.Positive, VelocityGridIcon.Up),
+                        1 => new(VelocityGridForeground.Negative, VelocityGridBackground.Negative, VelocityGridIcon.Down),
+                        _ => new(VelocityGridForeground.Warning, VelocityGridBackground.Warning, VelocityGridIcon.Warning)
+                    };
+            }
         }
-        return ValueTask.FromResult(new VelocityGridPage(range.StartRow, range.RowCount, values));
+        return ValueTask.FromResult(new VelocityGridPage(range.StartRow, range.RowCount, values, formats));
     }
 }
 

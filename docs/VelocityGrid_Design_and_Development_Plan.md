@@ -165,6 +165,7 @@ VelocityGrid is not intended initially to provide:
 - a complete replacement for every existing commercial DataGrid;
 - binary compatibility with WPF DataGrid APIs;
 - exact emulation of Excel.
+- in-cell editing, validation, or CRUD commit workflows.
 
 These are deliberately excluded because they would dilute the core engineering proposition.
 
@@ -301,7 +302,7 @@ flowchart TD
 
     Core --> XAML[WinUI Chrome]
     XAML --> Headers[Column Headers]
-    XAML --> Editors[Editor Overlays]
+    XAML --> Overlays[Tooltips and accessibility overlays]
     XAML --> Scrollbars[Scrollbars]
 ```
 
@@ -426,7 +427,6 @@ Contains:
 - header templates;
 - scrollbars;
 - focus visuals;
-- optional overlay editors;
 - light/dark/high-contrast resources.
 
 The performance-critical grid body should not be implemented as a large XAML item hierarchy.
@@ -478,7 +478,6 @@ VelocityGrid
 ├── VerticalScrollBar      [WinUI]
 ├── HorizontalScrollBar    [WinUI]
 └── OverlayLayer           [WinUI]
-     ├── editor
      ├── tooltip
      └── accessibility/focus visuals when needed
 ```
@@ -662,9 +661,18 @@ Page
 ├── RowCount
 ├── ColumnCount
 ├── Cell display values
-├── optional style flags
+├── optional compact cell formatting
 └── optional row state
 ```
+
+Cell formatting is part of the display data contract and may include:
+
+- foreground colour;
+- background colour;
+- an icon selected from a fixed, pre-canned VelocityGrid icon catalogue;
+- caller-controlled transient formatting through ordinary follow-up updates.
+
+Formatting must cross the managed/native boundary in the same coarse-grained page or update batch as cell values. It must use compact identifiers rather than per-cell brushes, XAML elements, arbitrary image objects, or managed callbacks during rendering. The grid applies only the visual state supplied by the caller: timing, transitions, and follow-up updates remain application/provider responsibilities.
 
 Sorting and filtering remain provider responsibilities.
 
@@ -1037,37 +1045,11 @@ Large range selections should not materialize one object per selected row.
 
 ---
 
-# 22. Editing Strategy
+# 22. Cell Formatting Strategy
 
-Editing is **not part of the first rendering milestone**.
+VelocityGrid is a high-performance read-only display grid. In-cell editing is deliberately outside its scope; applications that need to modify a selected item should provide their own form, command, or workflow outside the grid.
 
-When introduced, the preferred architecture is an overlay model.
-
-```text
-Native rendered grid
-       |
-       +--> user activates cell
-                |
-                v
-       WinUI editor positioned
-       over cell rectangle
-```
-
-Benefits:
-
-- normal WinUI TextBox/ComboBox interaction;
-- IME support;
-- accessibility leverage;
-- no permanent XAML cell tree;
-- only one/few editors exist at a time.
-
-The editing API should support:
-
-- begin edit;
-- validate;
-- commit;
-- cancel;
-- asynchronous commit where appropriate.
+Basic formatting is supported because it materially improves dense monitoring, market-data, and telemetry displays. The fast path should support compact foreground/background colour references and a bounded built-in icon catalogue without introducing a XAML element per cell. Transient effects are expressed as caller-scheduled state updates rather than grid-owned animation policy.
 
 ---
 
@@ -1357,7 +1339,6 @@ The first usable MVP should support:
 
 ### Explicitly deferred
 
-- editing;
 - grouping;
 - frozen columns;
 - arbitrary templates;
@@ -1383,8 +1364,6 @@ After the MVP is benchmarked:
 - provider-side filtering;
 - streaming update batches;
 - frozen columns;
-- editor overlays;
-- async commit;
 - richer styling;
 - custom formatters;
 - diagnostic overlay;
@@ -1702,23 +1681,27 @@ Exit criteria:
 
 ---
 
-## Phase 8 — Editing
+## Phase 8 — Cell Formatting
 
-Goal: support enterprise CRUD scenarios without compromising the body renderer.
+Goal: add useful visual semantics while preserving the compact native rendering path.
 
 Tasks:
 
-- editor overlay;
-- TextBox editor;
-- commit/cancel;
-- provider update contract;
-- keyboard edit navigation;
-- validation;
-- async commit behavior.
+- define compact formatting data carried alongside page and streaming-update cell values;
+- support foreground and background colours through bounded palette identifiers;
+- support an icon selected from a fixed, pre-canned icon catalogue;
+- reserve cell layout space for icons without creating XAML cell elements;
+- demonstrate caller-controlled transient formatting using ordinary batched updates;
+- ensure a later formatting-only state can replace a temporary background without grid-owned timers;
+- add managed convenience types that translate to the compact batched ABI;
+- add formatting, update, memory, and rendering benchmarks.
 
 Exit criteria:
 
-- one active editor does not create a persistent cell control tree.
+- formatted cells render without per-cell managed callbacks or XAML elements;
+- formatting travels in coarse-grained page/update batches;
+- caller-controlled transient formatting remains responsive under the Phase 7 market-data workload;
+- cached formatting remains bounded independently of logical row count.
 
 ---
 
@@ -1835,7 +1818,7 @@ ADR-0001 Native C++/WinRT core
 ADR-0002 Viewport-driven data provider
 ADR-0003 Fixed row height for MVP
 ADR-0004 Direct2D/DirectWrite body rendering
-ADR-0005 WinUI overlay editors
+ADR-0005 Compact batched cell formatting
 ADR-0006 Provider-side sorting/filtering
 ADR-0007 Bounded native page cache
 ADR-0008 No arbitrary DataTemplates in fast path
@@ -2315,7 +2298,6 @@ Only after the core is proven:
 - column virtualization for extremely wide datasets;
 - server-side grouping abstraction;
 - GPU-assisted specialized visualization cells;
-- richer editing controls.
 
 These should remain future directions, not initial obligations.
 

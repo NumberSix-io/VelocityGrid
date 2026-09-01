@@ -32,11 +32,11 @@ The packaged native and managed test applications can be run through Visual Stud
 - `VelocityGrid.Managed.Tests`: managed wrapper and future adapter tests.
 - `docs`: design plan, preflight findings, and architecture decisions.
 
-The managed package exposes `IVelocityGridDataProvider`, with synthetic in-memory and delayed remote-provider examples. Fetches and cancellations cross the ABI once per page; cached cell rendering remains native. The streaming-update contract remains a future phase.
+The managed package exposes `IVelocityGridDataProvider`, with synthetic in-memory and delayed remote-provider examples. Fetches and cancellations cross the ABI once per page; cached cell rendering remains native. Batched streaming updates cross the ABI once per batch and mutate cached native cells in place.
 
 ## Status
 
-The native rendering, cache/request scheduler, and managed-provider adapter phases are implemented. This is not yet a production-ready grid; see `docs/VelocityGrid_Design_and_Development_Plan.md` for the roadmap.
+The native rendering, cache/request scheduler, managed-provider adapter, columns/selection, performance baseline, streaming updates, and compact cell-formatting phases are implemented. VelocityGrid is intentionally read-only. This is not yet a production-ready grid; see `docs/VelocityGrid_Design_and_Development_Plan.md` for the roadmap.
 
 ## Licence
 

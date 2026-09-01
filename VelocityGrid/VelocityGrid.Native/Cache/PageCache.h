@@ -18,6 +18,8 @@ namespace velocity_grid
 
         void insert(page value);
         [[nodiscard]] std::optional<std::reference_wrapper<page const>> find_row(std::int64_t row);
+        [[nodiscard]] bool update_cell(std::int64_t row, std::int32_t column, std::wstring value,
+            cell_format format);
         [[nodiscard]] bool contains_page(std::int64_t start_row) const noexcept;
         void clear() noexcept;
         [[nodiscard]] std::size_t size() const noexcept;

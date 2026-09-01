@@ -48,6 +48,44 @@ namespace WinRT
         }
     }
 
+    internal sealed unsafe class _EventSource_global__VelocityGrid_Native_SelectionChangedHandler : global::ABI.WinRT.Interop.EventSource<global::VelocityGrid_Native.SelectionChangedHandler>
+    {
+
+
+        internal _EventSource_global__VelocityGrid_Native_SelectionChangedHandler(IObjectReference obj, int vtableIndexForAddHandler) : base(obj, vtableIndexForAddHandler)
+        {
+
+        }
+
+        protected override ObjectReferenceValue CreateMarshaler(global::VelocityGrid_Native.SelectionChangedHandler handler) =>
+        global::ABI.VelocityGrid_Native.SelectionChangedHandler.CreateMarshaler2(handler);
+
+        protected override global::ABI.WinRT.Interop.EventSourceState<global::VelocityGrid_Native.SelectionChangedHandler> CreateEventSourceState() =>
+        new EventState(ObjectReference.ThisPtr, Index);
+
+        [global::WinRT.WinRTExposedType]
+        private sealed class EventState : global::ABI.WinRT.Interop.EventSourceState<global::VelocityGrid_Native.SelectionChangedHandler>
+        {
+            public EventState(System.IntPtr obj, int index)
+            : base(obj, index)
+            {
+            }
+
+            protected override global::VelocityGrid_Native.SelectionChangedHandler GetEventInvoke()
+            {
+                return (long rowIndex, int columnIndex) =>
+                {
+                    var targetDelegate = TargetDelegate;
+                    if (targetDelegate is null)
+                    {
+                        return ;
+                    }
+                    targetDelegate.Invoke(rowIndex, columnIndex);
+                };
+            }
+        }
+    }
+
     internal sealed unsafe class _EventSource_global__VelocityGrid_Native_PageCanceledHandler : global::ABI.WinRT.Interop.EventSource<global::VelocityGrid_Native.PageCanceledHandler>
     {
 

@@ -2,6 +2,7 @@ namespace VelocityGrid_Native
 {
     delegate void PageRequestedHandler(Int64 startRow, Int32 rowCount, UInt64 requestId, UInt64 generation);
     delegate void PageCanceledHandler(UInt64 requestId);
+    delegate void SelectionChangedHandler(Int64 rowIndex, Int32 columnIndex);
 
     [default_interface]
     runtimeclass VelocityGrid
@@ -15,7 +16,25 @@ namespace VelocityGrid_Native
         Boolean ExternalProviderEnabled;
         event PageRequestedHandler PageRequested;
         event PageCanceledHandler PageCanceled;
-        void CompletePage(UInt64 requestId, UInt64 generation, Int64 startRow, Int32 rowCount, String[] values);
+        void CompletePage(UInt64 requestId, UInt64 generation, Int64 startRow, Int32 rowCount, String[] values,
+            UInt8[] foregrounds, UInt8[] backgrounds, UInt8[] icons);
         void FailPage(UInt64 requestId, UInt64 generation, String message);
+        void SetColumns(String[] headers, Double[] widths, Int32[] alignments);
+        Int64 SelectedRow{ get; };
+        Int32 SelectedColumn{ get; };
+        event SelectionChangedHandler SelectionChanged;
+        void NavigateSelection(Int32 command);
+        void ScrollToRow(Int64 rowIndex);
+        UInt64 FrameCount{ get; };
+        UInt64 CacheHits{ get; };
+        UInt64 CacheMisses{ get; };
+        UInt64 RequestCount{ get; };
+        void ResetMetrics();
+        void ApplyUpdates(Int64[] rowIndices, Int32[] columnIndices, String[] values,
+            UInt8[] foregrounds, UInt8[] backgrounds, UInt8[] icons);
+        UInt64 UpdateBatchCount{ get; };
+        UInt64 UpdateCellCount{ get; };
+        UInt64 UpdateRenderCount{ get; };
+        UInt64 LastUpdateLatencyMicroseconds{ get; };
     }
 }

@@ -42,6 +42,25 @@ namespace velocity_grid
         return std::nullopt;
     }
 
+    bool page_cache::update_cell(std::int64_t const row, std::int32_t const column, std::wstring value,
+        cell_format format)
+    {
+        if (column < 0 || column >= 10) return false;
+        for (auto item = m_pages.begin(); item != m_pages.end(); ++item)
+        {
+            auto& page = item->second.value;
+            if (!page.contains(row)) continue;
+            auto const index = static_cast<std::size_t>((row - page.start_row) * 10 + column);
+            if (index >= page.values.size()) return false;
+            page.values[index] = std::move(value);
+            if (page.formats.size() < page.values.size()) page.formats.resize(page.values.size());
+            page.formats[index] = format;
+            touch(item);
+            return true;
+        }
+        return false;
+    }
+
     bool page_cache::contains_page(std::int64_t const start_row) const noexcept
     {
         return m_pages.contains(start_row);

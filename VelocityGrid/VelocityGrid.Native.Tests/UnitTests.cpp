@@ -52,6 +52,21 @@ namespace VelocityGrid_Native_Tests
             Assert::IsTrue(cache.contains_page(256));
         }
 
+        TEST_METHOD(PageCacheUpdatesCachedCellsInPlace)
+        {
+            velocity_grid::page page{ 128, 2 };
+            page.values.resize(20, L"old");
+            velocity_grid::page_cache cache(2);
+            cache.insert(std::move(page));
+
+            Assert::IsTrue(cache.update_cell(129, 4, L"101.2500", { 1, 2, 1 }));
+            Assert::IsFalse(cache.update_cell(500, 4, L"not cached", {}));
+            auto const cached = cache.find_row(129);
+            Assert::IsTrue(cached.has_value());
+            Assert::AreEqual(L"101.2500", cached->get().values[14].c_str());
+            Assert::AreEqual<std::uint8_t>(1, cached->get().formats[14].foreground);
+        }
+
         TEST_METHOD(SchedulerPreservesGenerationOnCompletion)
         {
             velocity_grid::request_scheduler scheduler;

@@ -27,22 +27,39 @@ using WinRT.Interop;
 
 namespace VelocityGrid_Native
 {
-    [global::WinRT.WindowsRuntimeType("VelocityGrid_Native")][Guid("6F9E95F6-9434-5EBF-BAFE-3FE899276886")][global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.IVelocityGrid))]
+    [global::WinRT.WindowsRuntimeType("VelocityGrid_Native")][Guid("734492DA-6367-5CED-BFD7-5CC95B46F5B0")][global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.IVelocityGrid))]
     internal interface IVelocityGrid
     {
-        void CompletePage(ulong requestId, ulong generation, long startRow, int rowCount, string[] values);
+        void CompletePage(ulong requestId, ulong generation, long startRow, int rowCount, string[] values, byte[] foregrounds, byte[] backgrounds, byte[] icons);
         void FailPage(ulong requestId, ulong generation, string message);
+        void SetColumns(string[] headers, double[] widths, int[] alignments);
+        void NavigateSelection(int command);
+        void ScrollToRow(long rowIndex);
+        void ResetMetrics();
+        void ApplyUpdates(long[] rowIndices, int[] columnIndices, string[] values, byte[] foregrounds, byte[] backgrounds, byte[] icons);
+        ulong CacheHits { get; }
+        ulong CacheMisses { get; }
         bool ExternalProviderEnabled { get; set; }
         long FirstVisibleRow { get; }
+        ulong FrameCount { get; }
+        ulong LastUpdateLatencyMicroseconds { get; }
         long LastVisibleRow { get; }
+        ulong RequestCount { get; }
         long RowCount { get; set; }
         double RowHeight { get; set; }
+        int SelectedColumn { get; }
+        long SelectedRow { get; }
+        ulong UpdateBatchCount { get; }
+        ulong UpdateCellCount { get; }
+        ulong UpdateRenderCount { get; }
         global::Microsoft.UI.Xaml.UIElement View { get; }
         event PageCanceledHandler PageCanceled;
         event PageRequestedHandler PageRequested;
+        event SelectionChangedHandler SelectionChanged;
     }
     [global::WinRT.WindowsRuntimeType("VelocityGrid_Native")][global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.PageCanceledHandler))][global::WinRT.WinRTExposedType(typeof(global::ABI.VelocityGrid_Native.PageCanceledHandlerWinRTTypeDetails))]public delegate void PageCanceledHandler(ulong requestId);
     [global::WinRT.WindowsRuntimeType("VelocityGrid_Native")][global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.PageRequestedHandler))][global::WinRT.WinRTExposedType(typeof(global::ABI.VelocityGrid_Native.PageRequestedHandlerWinRTTypeDetails))]public delegate void PageRequestedHandler(long startRow, int rowCount, ulong requestId, ulong generation);
+    [global::WinRT.WindowsRuntimeType("VelocityGrid_Native")][global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.SelectionChangedHandler))][global::WinRT.WinRTExposedType(typeof(global::ABI.VelocityGrid_Native.SelectionChangedHandlerWinRTTypeDetails))]public delegate void SelectionChangedHandler(long rowIndex, int columnIndex);
     [global::WinRT.WindowsRuntimeType("VelocityGrid_Native")]
     [global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.VelocityGrid))]
     [global::ABI.VelocityGrid_Native.VelocityGridRcwFactory]
@@ -123,9 +140,19 @@ namespace VelocityGrid_Native
         private struct InterfaceTag<I>{};
 
 
-        public void CompletePage(ulong requestId, ulong generation, long startRow, int rowCount, string[] values) => global::ABI.VelocityGrid_Native.IVelocityGridMethods.CompletePage(_objRef_global__VelocityGrid_Native_IVelocityGrid, requestId, generation, startRow, rowCount, values);
+        public void CompletePage(ulong requestId, ulong generation, long startRow, int rowCount, string[] values, byte[] foregrounds, byte[] backgrounds, byte[] icons) => global::ABI.VelocityGrid_Native.IVelocityGridMethods.CompletePage(_objRef_global__VelocityGrid_Native_IVelocityGrid, requestId, generation, startRow, rowCount, values, foregrounds, backgrounds, icons);
 
         public void FailPage(ulong requestId, ulong generation, string message) => global::ABI.VelocityGrid_Native.IVelocityGridMethods.FailPage(_objRef_global__VelocityGrid_Native_IVelocityGrid, requestId, generation, message);
+
+        public void SetColumns(string[] headers, double[] widths, int[] alignments) => global::ABI.VelocityGrid_Native.IVelocityGridMethods.SetColumns(_objRef_global__VelocityGrid_Native_IVelocityGrid, headers, widths, alignments);
+
+        public void NavigateSelection(int command) => global::ABI.VelocityGrid_Native.IVelocityGridMethods.NavigateSelection(_objRef_global__VelocityGrid_Native_IVelocityGrid, command);
+
+        public void ScrollToRow(long rowIndex) => global::ABI.VelocityGrid_Native.IVelocityGridMethods.ScrollToRow(_objRef_global__VelocityGrid_Native_IVelocityGrid, rowIndex);
+
+        public void ResetMetrics() => global::ABI.VelocityGrid_Native.IVelocityGridMethods.ResetMetrics(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public void ApplyUpdates(long[] rowIndices, int[] columnIndices, string[] values, byte[] foregrounds, byte[] backgrounds, byte[] icons) => global::ABI.VelocityGrid_Native.IVelocityGridMethods.ApplyUpdates(_objRef_global__VelocityGrid_Native_IVelocityGrid, rowIndices, columnIndices, values, foregrounds, backgrounds, icons);
 
         public event PageCanceledHandler PageCanceled
         {
@@ -139,6 +166,16 @@ namespace VelocityGrid_Native
             remove => global::ABI.VelocityGrid_Native.IVelocityGridMethods.Get_PageRequested2(_objRef_global__VelocityGrid_Native_IVelocityGrid, (IWinRTObject)this).Unsubscribe(value);
         }
 
+        public event SelectionChangedHandler SelectionChanged
+        {
+            add => global::ABI.VelocityGrid_Native.IVelocityGridMethods.Get_SelectionChanged2(_objRef_global__VelocityGrid_Native_IVelocityGrid, (IWinRTObject)this).Subscribe(value);
+            remove => global::ABI.VelocityGrid_Native.IVelocityGridMethods.Get_SelectionChanged2(_objRef_global__VelocityGrid_Native_IVelocityGrid, (IWinRTObject)this).Unsubscribe(value);
+        }
+
+        public ulong CacheHits => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_CacheHits(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public ulong CacheMisses => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_CacheMisses(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
         public bool ExternalProviderEnabled
         {
             get => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_ExternalProviderEnabled(_objRef_global__VelocityGrid_Native_IVelocityGrid);
@@ -147,7 +184,13 @@ namespace VelocityGrid_Native
 
         public long FirstVisibleRow => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_FirstVisibleRow(_objRef_global__VelocityGrid_Native_IVelocityGrid);
 
+        public ulong FrameCount => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_FrameCount(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public ulong LastUpdateLatencyMicroseconds => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_LastUpdateLatencyMicroseconds(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
         public long LastVisibleRow => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_LastVisibleRow(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public ulong RequestCount => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_RequestCount(_objRef_global__VelocityGrid_Native_IVelocityGrid);
 
         public long RowCount
         {
@@ -160,6 +203,16 @@ namespace VelocityGrid_Native
             get => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_RowHeight(_objRef_global__VelocityGrid_Native_IVelocityGrid);
             set => global::ABI.VelocityGrid_Native.IVelocityGridMethods.set_RowHeight(_objRef_global__VelocityGrid_Native_IVelocityGrid, value);
         }
+
+        public int SelectedColumn => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_SelectedColumn(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public long SelectedRow => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_SelectedRow(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public ulong UpdateBatchCount => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_UpdateBatchCount(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public ulong UpdateCellCount => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_UpdateCellCount(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public ulong UpdateRenderCount => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_UpdateRenderCount(_objRef_global__VelocityGrid_Native_IVelocityGrid);
 
         public global::Microsoft.UI.Xaml.UIElement View => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_View(_objRef_global__VelocityGrid_Native_IVelocityGrid);
 
@@ -190,23 +243,41 @@ namespace ABI.VelocityGrid_Native
     {
 
 
-        internal static unsafe void CompletePage(IObjectReference _obj, ulong requestId, ulong generation, long startRow, int rowCount, string[] values)
+        internal static unsafe void CompletePage(IObjectReference _obj, ulong requestId, ulong generation, long startRow, int rowCount, string[] values, byte[] foregrounds, byte[] backgrounds, byte[] icons)
         {
             var ThisPtr = _obj.ThisPtr;
 
             MarshalString.MarshalerArray __values = default;
             int __values_length = default;
             IntPtr __values_data = default;
+            MarshalBlittable<byte>.MarshalerArray __foregrounds = default;
+            int __foregrounds_length = default;
+            IntPtr __foregrounds_data = default;
+            MarshalBlittable<byte>.MarshalerArray __backgrounds = default;
+            int __backgrounds_length = default;
+            IntPtr __backgrounds_data = default;
+            MarshalBlittable<byte>.MarshalerArray __icons = default;
+            int __icons_length = default;
+            IntPtr __icons_data = default;
             try
             {
                 __values = MarshalString.CreateMarshalerArray(values);
                 (__values_length, __values_data) = MarshalString.GetAbiArray(__values);
-                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong, ulong, long, int, int, IntPtr, int>**)ThisPtr)[19](ThisPtr, requestId, generation, startRow, rowCount, __values_length, __values_data));
+                __foregrounds = MarshalBlittable<byte>.CreateMarshalerArray(foregrounds);
+                (__foregrounds_length, __foregrounds_data) = MarshalBlittable<byte>.GetAbiArray(__foregrounds);
+                __backgrounds = MarshalBlittable<byte>.CreateMarshalerArray(backgrounds);
+                (__backgrounds_length, __backgrounds_data) = MarshalBlittable<byte>.GetAbiArray(__backgrounds);
+                __icons = MarshalBlittable<byte>.CreateMarshalerArray(icons);
+                (__icons_length, __icons_data) = MarshalBlittable<byte>.GetAbiArray(__icons);
+                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong, ulong, long, int, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[19](ThisPtr, requestId, generation, startRow, rowCount, __values_length, __values_data, __foregrounds_length, __foregrounds_data, __backgrounds_length, __backgrounds_data, __icons_length, __icons_data));
                 global::System.GC.KeepAlive(_obj);
             }
             finally
             {
                 MarshalString.DisposeMarshalerArray(__values);
+                MarshalBlittable<byte>.DisposeMarshalerArray(__foregrounds);
+                MarshalBlittable<byte>.DisposeMarshalerArray(__backgrounds);
+                MarshalBlittable<byte>.DisposeMarshalerArray(__icons);
             }
         }
 
@@ -221,6 +292,132 @@ namespace ABI.VelocityGrid_Native
                 global::System.GC.KeepAlive(_obj);
             }
         }
+
+        internal static unsafe void SetColumns(IObjectReference _obj, string[] headers, double[] widths, int[] alignments)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            MarshalString.MarshalerArray __headers = default;
+            int __headers_length = default;
+            IntPtr __headers_data = default;
+            MarshalBlittable<double>.MarshalerArray __widths = default;
+            int __widths_length = default;
+            IntPtr __widths_data = default;
+            MarshalBlittable<int>.MarshalerArray __alignments = default;
+            int __alignments_length = default;
+            IntPtr __alignments_data = default;
+            try
+            {
+                __headers = MarshalString.CreateMarshalerArray(headers);
+                (__headers_length, __headers_data) = MarshalString.GetAbiArray(__headers);
+                __widths = MarshalBlittable<double>.CreateMarshalerArray(widths);
+                (__widths_length, __widths_data) = MarshalBlittable<double>.GetAbiArray(__widths);
+                __alignments = MarshalBlittable<int>.CreateMarshalerArray(alignments);
+                (__alignments_length, __alignments_data) = MarshalBlittable<int>.GetAbiArray(__alignments);
+                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[21](ThisPtr, __headers_length, __headers_data, __widths_length, __widths_data, __alignments_length, __alignments_data));
+                global::System.GC.KeepAlive(_obj);
+            }
+            finally
+            {
+                MarshalString.DisposeMarshalerArray(__headers);
+                MarshalBlittable<double>.DisposeMarshalerArray(__widths);
+                MarshalBlittable<int>.DisposeMarshalerArray(__alignments);
+            }
+        }
+
+        internal static unsafe void NavigateSelection(IObjectReference _obj, int command)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, int>**)ThisPtr)[26](ThisPtr, command));
+            global::System.GC.KeepAlive(_obj);
+        }
+
+        internal static unsafe void ScrollToRow(IObjectReference _obj, long rowIndex)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, long, int>**)ThisPtr)[27](ThisPtr, rowIndex));
+            global::System.GC.KeepAlive(_obj);
+        }
+
+        internal static unsafe void ResetMetrics(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int>**)ThisPtr)[32](ThisPtr));
+            global::System.GC.KeepAlive(_obj);
+        }
+
+        internal static unsafe void ApplyUpdates(IObjectReference _obj, long[] rowIndices, int[] columnIndices, string[] values, byte[] foregrounds, byte[] backgrounds, byte[] icons)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            MarshalBlittable<long>.MarshalerArray __rowIndices = default;
+            int __rowIndices_length = default;
+            IntPtr __rowIndices_data = default;
+            MarshalBlittable<int>.MarshalerArray __columnIndices = default;
+            int __columnIndices_length = default;
+            IntPtr __columnIndices_data = default;
+            MarshalString.MarshalerArray __values = default;
+            int __values_length = default;
+            IntPtr __values_data = default;
+            MarshalBlittable<byte>.MarshalerArray __foregrounds = default;
+            int __foregrounds_length = default;
+            IntPtr __foregrounds_data = default;
+            MarshalBlittable<byte>.MarshalerArray __backgrounds = default;
+            int __backgrounds_length = default;
+            IntPtr __backgrounds_data = default;
+            MarshalBlittable<byte>.MarshalerArray __icons = default;
+            int __icons_length = default;
+            IntPtr __icons_data = default;
+            try
+            {
+                __rowIndices = MarshalBlittable<long>.CreateMarshalerArray(rowIndices);
+                (__rowIndices_length, __rowIndices_data) = MarshalBlittable<long>.GetAbiArray(__rowIndices);
+                __columnIndices = MarshalBlittable<int>.CreateMarshalerArray(columnIndices);
+                (__columnIndices_length, __columnIndices_data) = MarshalBlittable<int>.GetAbiArray(__columnIndices);
+                __values = MarshalString.CreateMarshalerArray(values);
+                (__values_length, __values_data) = MarshalString.GetAbiArray(__values);
+                __foregrounds = MarshalBlittable<byte>.CreateMarshalerArray(foregrounds);
+                (__foregrounds_length, __foregrounds_data) = MarshalBlittable<byte>.GetAbiArray(__foregrounds);
+                __backgrounds = MarshalBlittable<byte>.CreateMarshalerArray(backgrounds);
+                (__backgrounds_length, __backgrounds_data) = MarshalBlittable<byte>.GetAbiArray(__backgrounds);
+                __icons = MarshalBlittable<byte>.CreateMarshalerArray(icons);
+                (__icons_length, __icons_data) = MarshalBlittable<byte>.GetAbiArray(__icons);
+                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[33](ThisPtr, __rowIndices_length, __rowIndices_data, __columnIndices_length, __columnIndices_data, __values_length, __values_data, __foregrounds_length, __foregrounds_data, __backgrounds_length, __backgrounds_data, __icons_length, __icons_data));
+                global::System.GC.KeepAlive(_obj);
+            }
+            finally
+            {
+                MarshalBlittable<long>.DisposeMarshalerArray(__rowIndices);
+                MarshalBlittable<int>.DisposeMarshalerArray(__columnIndices);
+                MarshalString.DisposeMarshalerArray(__values);
+                MarshalBlittable<byte>.DisposeMarshalerArray(__foregrounds);
+                MarshalBlittable<byte>.DisposeMarshalerArray(__backgrounds);
+                MarshalBlittable<byte>.DisposeMarshalerArray(__icons);
+            }
+        }
+        internal static unsafe ulong get_CacheHits(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            ulong __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[29](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
+        internal static unsafe ulong get_CacheMisses(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            ulong __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[30](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
         internal static unsafe bool get_ExternalProviderEnabled(IObjectReference _obj)
         {
             var ThisPtr = _obj.ThisPtr;
@@ -248,12 +445,42 @@ namespace ABI.VelocityGrid_Native
             return __retval;
         }
 
+        internal static unsafe ulong get_FrameCount(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            ulong __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[28](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
+        internal static unsafe ulong get_LastUpdateLatencyMicroseconds(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            ulong __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[37](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
         internal static unsafe long get_LastVisibleRow(IObjectReference _obj)
         {
             var ThisPtr = _obj.ThisPtr;
 
             long __retval = default;
             global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, long*, int>**)ThisPtr)[11](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
+        internal static unsafe ulong get_RequestCount(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            ulong __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[31](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -290,6 +517,56 @@ namespace ABI.VelocityGrid_Native
 
             global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, double, int>**)ThisPtr)[9](ThisPtr, value));
             global::System.GC.KeepAlive(_obj);
+        }
+
+        internal static unsafe int get_SelectedColumn(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            int __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int*, int>**)ThisPtr)[23](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
+        internal static unsafe long get_SelectedRow(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            long __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, long*, int>**)ThisPtr)[22](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
+        internal static unsafe ulong get_UpdateBatchCount(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            ulong __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[34](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
+        internal static unsafe ulong get_UpdateCellCount(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            ulong __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[35](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+
+        internal static unsafe ulong get_UpdateRenderCount(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            ulong __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[36](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
         }
 
         internal static unsafe global::Microsoft.UI.Xaml.UIElement get_View(IObjectReference _obj)
@@ -352,19 +629,40 @@ namespace ABI.VelocityGrid_Native
             });
         }
 
+        private volatile static global::System.Runtime.CompilerServices.ConditionalWeakTable<object, global::ABI.WinRT.Interop.EventSource<global::VelocityGrid_Native.SelectionChangedHandler>> _SelectionChanged_;
+        private static global::System.Runtime.CompilerServices.ConditionalWeakTable<object, global::ABI.WinRT.Interop.EventSource<global::VelocityGrid_Native.SelectionChangedHandler>> MakeSelectionChangedTable()
+        {
+            
+            global::System.Threading.Interlocked.CompareExchange(ref _SelectionChanged_, new(), null);
+            return _SelectionChanged_;
+        }
+        private static global::System.Runtime.CompilerServices.ConditionalWeakTable<object, global::ABI.WinRT.Interop.EventSource<global::VelocityGrid_Native.SelectionChangedHandler>> _SelectionChanged => _SelectionChanged_ ?? MakeSelectionChangedTable();
+
+
+
+        internal static unsafe global::ABI.WinRT.Interop.EventSource<global::VelocityGrid_Native.SelectionChangedHandler> Get_SelectionChanged2(IObjectReference _obj, object _thisObj)
+        {
+            return _SelectionChanged.GetValue(_thisObj, (key) =>
+            {
+
+                return 
+                new _EventSource_global__VelocityGrid_Native_SelectionChangedHandler(_obj, 24);
+            });
+        }
+
 
         public static ref readonly global::System.Guid IID
         {
             [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             get
             {
-                global::System.ReadOnlySpan<byte> data = new byte[] { 0xF6, 0x95, 0x9E, 0x6F, 0x34, 0x94, 0xBF, 0x5E, 0xBA, 0xFE, 0x3F, 0xE8, 0x99, 0x27, 0x68, 0x86 };
+                global::System.ReadOnlySpan<byte> data = new byte[] { 0xDA, 0x92, 0x44, 0x73, 0x67, 0x63, 0xED, 0x5C, 0xBF, 0xD7, 0x5C, 0xC9, 0x5B, 0x46, 0xF5, 0xB0 };
                 return ref global::System.Runtime.CompilerServices.Unsafe.As<byte, global::System.Guid>(ref global::System.Runtime.InteropServices.MemoryMarshal.GetReference(data));
             }
         }
 
     }
-    [Guid("6F9E95F6-9434-5EBF-BAFE-3FE899276886")]
+    [Guid("734492DA-6367-5CED-BFD7-5CC95B46F5B0")]
     internal interface IVelocityGrid : global::VelocityGrid_Native.IVelocityGrid
     {
     }
@@ -639,6 +937,143 @@ namespace ABI.VelocityGrid_Native
             {
                 IID = PageRequestedHandler.IID,
                 Vtable = PageRequestedHandler.AbiToProjectionVftablePtr
+            };
+        }
+    }
+    [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+    [Guid("D0D6C646-708B-50F8-9013-C36A945CF715")]
+    public static class SelectionChangedHandler
+    {
+        public static ref readonly global::System.Guid IID
+        {
+            [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                global::System.ReadOnlySpan<byte> data = new byte[] { 0x46, 0xC6, 0xD6, 0xD0, 0x8B, 0x70, 0xF8, 0x50, 0x90, 0x13, 0xC3, 0x6A, 0x94, 0x5C, 0xF7, 0x15 };
+                return ref global::System.Runtime.CompilerServices.Unsafe.As<byte, global::System.Guid>(ref global::System.Runtime.InteropServices.MemoryMarshal.GetReference(data));
+            }
+        }
+
+
+
+        public static readonly IntPtr AbiToProjectionVftablePtr;
+
+        static unsafe SelectionChangedHandler()
+        {
+
+            AbiToProjectionVftablePtr = ComWrappersSupport.AllocateVtableMemory(typeof(SelectionChangedHandler), sizeof(IntPtr) * 4);
+            *(global::WinRT.Interop.IUnknownVftbl*)AbiToProjectionVftablePtr = global::WinRT.Interop.IUnknownVftbl.AbiToProjectionVftbl;
+            ((delegate* unmanaged[Stdcall]<IntPtr, long, int, int>*)AbiToProjectionVftablePtr)[3] = &Do_Abi_Invoke;
+            global::WinRT.ComWrappersSupport.RegisterDelegateFactory(typeof(global::VelocityGrid_Native.SelectionChangedHandler), CreateRcw);
+        }
+
+        public static unsafe IObjectReference CreateMarshaler(global::VelocityGrid_Native.SelectionChangedHandler managedDelegate) => 
+        managedDelegate is null ? null : MarshalDelegate.CreateMarshaler(managedDelegate, IID);
+
+        public static unsafe ObjectReferenceValue CreateMarshaler2(global::VelocityGrid_Native.SelectionChangedHandler managedDelegate) => 
+        MarshalDelegate.CreateMarshaler2(managedDelegate, IID);
+
+        public static IntPtr GetAbi(IObjectReference value) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.GetAbi(value);
+
+        public static unsafe global::VelocityGrid_Native.SelectionChangedHandler FromAbi(IntPtr nativeDelegate)
+        {
+            return MarshalDelegate.FromAbi<global::VelocityGrid_Native.SelectionChangedHandler>(nativeDelegate);
+        }
+
+        public static global::VelocityGrid_Native.SelectionChangedHandler CreateRcw(IntPtr ptr)
+        {
+            return new global::VelocityGrid_Native.SelectionChangedHandler(new NativeDelegateWrapper(ComWrappersSupport.GetObjectReferenceForInterface<IUnknownVftbl>(ptr, IID)).Invoke);
+        }
+
+        #if !NET
+        [global::WinRT.ObjectReferenceWrapper(nameof(_nativeDelegate))]
+        private sealed class NativeDelegateWrapper
+        #else
+        private sealed class NativeDelegateWrapper : IWinRTObject
+        #endif
+        {
+            private readonly ObjectReference<global::WinRT.Interop.IUnknownVftbl> _nativeDelegate;
+
+            public NativeDelegateWrapper(ObjectReference<global::WinRT.Interop.IUnknownVftbl> nativeDelegate)
+            {
+                _nativeDelegate = nativeDelegate;
+            }
+
+            #if NET
+            IObjectReference IWinRTObject.NativeObject => _nativeDelegate;
+            bool IWinRTObject.HasUnwrappableNativeObject => true;
+            private volatile global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, IObjectReference> _queryInterfaceCache;
+            private global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, IObjectReference> MakeQueryInterfaceCache()
+            {
+                global::System.Threading.Interlocked.CompareExchange(ref _queryInterfaceCache, new global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, IObjectReference>(), null); 
+                return _queryInterfaceCache;
+            }
+            global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, IObjectReference> IWinRTObject.QueryInterfaceCache => _queryInterfaceCache ?? MakeQueryInterfaceCache();
+            private volatile global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, object> _additionalTypeData;
+            private global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, object> MakeAdditionalTypeData()
+            {
+                global::System.Threading.Interlocked.CompareExchange(ref _additionalTypeData, new global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, object>(), null); 
+                return _additionalTypeData;
+            }
+            global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, object> IWinRTObject.AdditionalTypeData => _additionalTypeData ?? MakeAdditionalTypeData();
+            #endif
+
+            public unsafe void Invoke(long rowIndex, int columnIndex)
+            {{
+                IntPtr ThisPtr = _nativeDelegate.ThisPtr;
+                var abiInvoke = (delegate* unmanaged[Stdcall]<IntPtr, long, int, int>)(*(void***)_nativeDelegate.ThisPtr)[3];
+                global::WinRT.ExceptionHelpers.ThrowExceptionForHR(abiInvoke(ThisPtr, rowIndex, columnIndex));
+                global::System.GC.KeepAlive(_nativeDelegate);
+            }
+            }
+        }
+
+        public static IntPtr FromManaged(global::VelocityGrid_Native.SelectionChangedHandler managedDelegate) => CreateMarshaler2(managedDelegate).Detach();
+
+        public static void DisposeMarshaler(IObjectReference value) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.DisposeMarshaler(value);
+
+        public static void DisposeAbi(IntPtr abi) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.DisposeAbi(abi);
+
+        public static unsafe MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.MarshalerArray CreateMarshalerArray(global::VelocityGrid_Native.SelectionChangedHandler[] array) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.CreateMarshalerArray2(array, (o) => CreateMarshaler2(o));
+        public static (int length, IntPtr data) GetAbiArray(object box) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.GetAbiArray(box);
+        public static unsafe global::VelocityGrid_Native.SelectionChangedHandler[] FromAbiArray(object box) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.FromAbiArray(box, FromAbi);
+        public static void CopyAbiArray(global::VelocityGrid_Native.SelectionChangedHandler[] array, object box) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.CopyAbiArray(array, box, FromAbi);
+        public static (int length, IntPtr data) FromManagedArray(global::VelocityGrid_Native.SelectionChangedHandler[] array) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.FromManagedArray(array, (o) => FromManaged(o));
+        public static void DisposeMarshalerArray(MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.MarshalerArray array) => MarshalInterfaceHelper<global::VelocityGrid_Native.SelectionChangedHandler>.DisposeMarshalerArray(array);
+        public static unsafe void DisposeAbiArray(object box) => MarshalInspectable<object>.DisposeAbiArray(box);
+
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+        private static unsafe int Do_Abi_Invoke(IntPtr thisPtr, long rowIndex, int columnIndex)
+        {
+
+
+
+            try
+            {
+
+                global::WinRT.ComWrappersSupport.FindObject<global::VelocityGrid_Native.SelectionChangedHandler>(thisPtr).Invoke(rowIndex, columnIndex)
+                ;
+
+            }
+            catch (Exception __exception__)
+            {
+                global::WinRT.ExceptionHelpers.SetErrorInfo(__exception__);
+                return global::WinRT.ExceptionHelpers.GetHRForException(__exception__);
+            }
+            return 0;
+        }
+    }
+
+
+    internal sealed class SelectionChangedHandlerWinRTTypeDetails : global::WinRT.DelegateTypeDetails<global::VelocityGrid_Native.SelectionChangedHandler>
+    {
+        public override ComWrappers.ComInterfaceEntry GetDelegateInterface()
+        {
+            return new global::System.Runtime.InteropServices.ComWrappers.ComInterfaceEntry
+            {
+                IID = SelectionChangedHandler.IID,
+                Vtable = SelectionChangedHandler.AbiToProjectionVftablePtr
             };
         }
     }
