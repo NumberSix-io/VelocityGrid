@@ -27,4 +27,4 @@ The on-grid overlay reports the visible range, cache occupancy and hit ratio, to
 
 `IVelocityGridDataProvider` returns display-ready values and optional compact formats in a coarse-grained page. The adapter flattens page fields into arrays for one completion call. Strings/formats are copied into native page storage; cached scrolling, hit testing, selection, and rendering then require no provider callback.
 
-The page size (128 rows), prefetch budget, cache capacity (eight pages), and ten source columns are currently internal policies rather than configurable public properties. Change them only with accompanying cache/request/performance tests.
+The page size (128 rows), prefetch budget, and cache capacity (eight pages) are currently internal policies rather than configurable public properties. Column count comes from the active column configuration and is included in every provider fetch context.

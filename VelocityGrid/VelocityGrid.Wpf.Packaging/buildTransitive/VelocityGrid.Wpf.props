@@ -1,0 +1,6 @@
+<Project>
+  <!-- Unpackaged WPF executables need the Windows App SDK bootstrap initializer. -->
+  <PropertyGroup Condition="'$(UseWPF)' == 'true' and ('$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe') and '$(WindowsPackageType)' == ''">
+    <WindowsPackageType>None</WindowsPackageType>
+  </PropertyGroup>
+</Project>

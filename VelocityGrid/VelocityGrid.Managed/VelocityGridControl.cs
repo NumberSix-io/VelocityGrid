@@ -17,8 +17,8 @@ namespace VelocityGrid.Managed;
 /// </summary>
 public sealed class VelocityGridControl : UserControl
 {
-    /// <summary>Number of source slots currently required in every provider row.</summary>
-    public const int ColumnCount = 10;
+    /// <summary>Number of columns in the initial configuration.</summary>
+    public const int DefaultColumnCount = 10;
 
     private readonly VelocityGrid_Native.VelocityGrid _nativeGrid = new();
     private readonly Dictionary<ulong, CancellationTokenSource> _requests = [];
@@ -41,7 +41,7 @@ public sealed class VelocityGridControl : UserControl
         LostFocus += OnFocusChanged;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
-        SetColumns(Enumerable.Range(1, ColumnCount).Select(index => new VelocityGridColumn($"Column {index}")));
+        SetColumns(Enumerable.Range(1, DefaultColumnCount).Select(index => new VelocityGridColumn($"Column {index}")));
     }
 
     /// <summary>Raised after native pointer or keyboard selection changes.</summary>
@@ -73,6 +73,8 @@ public sealed class VelocityGridControl : UserControl
         ArgumentNullException.ThrowIfNull(updates);
         var batch = updates.ToArray();
         if (batch.Length == 0) return;
+        if (batch.Any(update => update.ColumnIndex >= _columns.Count))
+            throw new ArgumentOutOfRangeException(nameof(updates), "An update column index exceeds the configured columns.");
         _nativeGrid.ApplyUpdates(
             batch.Select(update => update.RowIndex).ToArray(),
             batch.Select(update => update.ColumnIndex).ToArray(),
@@ -87,13 +89,22 @@ public sealed class VelocityGridControl : UserControl
     {
         ArgumentNullException.ThrowIfNull(columns);
         var snapshot = columns.ToArray();
-        if (snapshot.Length is < 1 or > ColumnCount)
-            throw new ArgumentException("VelocityGrid requires between one and ten columns.", nameof(columns));
-        _nativeGrid.SetColumns(
-            snapshot.Select(column => column.Header).ToArray(),
-            snapshot.Select(column => column.Width).ToArray(),
-            snapshot.Select(column => (int)column.Alignment).ToArray());
+        if (snapshot.Length < 1)
+            throw new ArgumentException("VelocityGrid requires at least one column.", nameof(columns));
+        var previous = _columns;
         _columns = snapshot;
+        try
+        {
+            _nativeGrid.SetColumns(
+                snapshot.Select(column => column.Header).ToArray(),
+                snapshot.Select(column => column.Width).ToArray(),
+                snapshot.Select(column => (int)column.Alignment).ToArray());
+        }
+        catch
+        {
+            _columns = previous;
+            throw;
+        }
     }
 
     /// <summary>Gets or sets the viewport-driven page provider.</summary>
@@ -146,8 +157,11 @@ public sealed class VelocityGridControl : UserControl
         {
             var page = await provider.GetRowsAsync(
                 new VelocityGridRange(startRow, rowCount),
-                new VelocityGridFetchContext(requestId, generation),
+                new VelocityGridFetchContext(requestId, generation, _columns.Count),
                 cancellation.Token);
+            if (page.ColumnCount != _columns.Count)
+                throw new InvalidOperationException(
+                    $"The provider returned {page.ColumnCount} columns per row; {_columns.Count} were requested.");
             if (!cancellation.IsCancellationRequested)
                 _nativeGrid.CompletePage(requestId, generation, page.StartRow, page.RowCount, page.Values,
                     page.Formats.Select(format => (byte)format.Foreground).ToArray(),

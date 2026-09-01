@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd"><metadata>
+  <id>VelocityGrid.Native.WinUI</id><version>$version$</version><title>VelocityGrid Native WinUI Runtime</title><authors>Dean C</authors>
+  <license type="expression">MIT</license><readme>README.md</readme>
+  <repository type="git" url="https://github.com/deanchalk/VelocityGrid.git" />
+  <description>The C++/WinRT component, metadata, and x86/x64/ARM64 runtimes for VelocityGrid.</description>
+  <tags>winui winui3 cpp cppwinrt datagrid virtualization native</tags>
+  <dependencies>
+    <group targetFramework="UAP10.0"><dependency id="Microsoft.WindowsAppSDK" version="[2.4.0]" /><dependency id="Microsoft.Windows.CppWinRT" version="[2.0.220531.1]" /></group>
+    <group targetFramework="native0.0"><dependency id="Microsoft.WindowsAppSDK" version="[2.4.0]" /><dependency id="Microsoft.Windows.CppWinRT" version="[2.0.220531.1]" /></group>
+  </dependencies>
+</metadata><files>
+  <file src="..\VelocityGrid.Native\x64\Release\VelocityGrid.Native\VelocityGrid_Native.winmd" target="lib\uap10.0" />
+  <file src="..\VelocityGrid.Native\x64\Release\VelocityGrid.Native\VelocityGrid.Native.dll" target="runtimes\win-x64\native" />
+  <file src="..\VelocityGrid.Native\Release\VelocityGrid.Native\VelocityGrid.Native.dll" target="runtimes\win-x86\native" />
+  <file src="..\VelocityGrid.Native\ARM64\Release\VelocityGrid.Native\VelocityGrid.Native.dll" target="runtimes\win-arm64\native" />
+  <file src="..\VelocityGrid.Native\x64\Release\VelocityGrid.Native\VelocityGrid_Native.pri" target="runtimes\win-x64\native" />
+  <file src="..\VelocityGrid.Native\Release\VelocityGrid.Native\VelocityGrid_Native.pri" target="runtimes\win-x86\native" />
+  <file src="..\VelocityGrid.Native\ARM64\Release\VelocityGrid.Native\VelocityGrid_Native.pri" target="runtimes\win-arm64\native" />
+  <file src="..\VelocityGrid.Native\Generated Files\winrt\VelocityGrid_Native.h" target="buildTransitive\include\winrt" />
+  <file src="..\VelocityGrid.Native\Generated Files\winrt\impl\VelocityGrid_Native.*.h" target="buildTransitive\include\winrt\impl" />
+  <file src="buildTransitive\VelocityGrid.Native.WinUI.props" target="buildTransitive" /><file src="buildTransitive\VelocityGrid.Native.WinUI.targets" target="buildTransitive" />
+  <file src="buildTransitive\VelocityGrid.Native.WinUI.props" target="build\native" /><file src="buildTransitive\VelocityGrid.Native.WinUI.targets" target="build\native" />
+  <file src="..\..\README.md" /><file src="..\..\LICENSE" />
+</files></package>

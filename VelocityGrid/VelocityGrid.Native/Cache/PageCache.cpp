@@ -47,12 +47,13 @@ namespace velocity_grid
     bool page_cache::update_cell(std::int64_t const row, std::int32_t const column, std::wstring value,
         cell_format format)
     {
-        if (column < 0 || column >= 10) return false;
+        if (column < 0) return false;
         for (auto item = m_pages.begin(); item != m_pages.end(); ++item)
         {
             auto& page = item->second.value;
             if (!page.contains(row)) continue;
-            auto const index = static_cast<std::size_t>((row - page.start_row) * 10 + column);
+            if (column >= page.column_count) return false;
+            auto const index = static_cast<std::size_t>((row - page.start_row) * page.column_count + column);
             if (index >= page.values.size()) return false;
             page.values[index] = std::move(value);
             if (page.formats.size() < page.values.size()) page.formats.resize(page.values.size());

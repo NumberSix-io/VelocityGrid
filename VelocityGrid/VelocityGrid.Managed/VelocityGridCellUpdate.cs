@@ -9,7 +9,7 @@ public readonly record struct VelocityGridCellUpdate
     public VelocityGridCellUpdate(long rowIndex, int columnIndex, string value, VelocityGridCellFormat format = default)
     {
         if (rowIndex < 0) throw new ArgumentOutOfRangeException(nameof(rowIndex));
-        if (columnIndex is < 0 or >= VelocityGridControl.ColumnCount)
+        if (columnIndex < 0)
             throw new ArgumentOutOfRangeException(nameof(columnIndex));
         RowIndex = rowIndex;
         ColumnIndex = columnIndex;
@@ -19,7 +19,7 @@ public readonly record struct VelocityGridCellUpdate
 
     /// <summary>Zero-based logical row index.</summary>
     public long RowIndex { get; }
-    /// <summary>Zero-based source-column index (0–9).</summary>
+    /// <summary>Zero-based source-column index.</summary>
     public int ColumnIndex { get; }
     /// <summary>Display-ready text copied into native cache storage.</summary>
     public string Value { get; }

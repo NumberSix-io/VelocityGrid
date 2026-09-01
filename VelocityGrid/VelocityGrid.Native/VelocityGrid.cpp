@@ -23,27 +23,22 @@ namespace winrt::VelocityGrid_Native::implementation
         constexpr double diagnostics_height = 34.0;
         constexpr double header_height = 32.0;
 
-        D2D1_COLOR_F foreground_colour(std::uint8_t const id) noexcept
+        D2D1_COLOR_F palette_colour(std::uint8_t const id, D2D1_COLOR_F const fallback) noexcept
         {
-            switch (id) {
-            case 1: return D2D1::ColorF(0.05f, 0.45f, 0.20f);
-            case 2: return D2D1::ColorF(0.72f, 0.08f, 0.10f);
-            case 3: return D2D1::ColorF(0.65f, 0.38f, 0.02f);
-            case 4: return D2D1::ColorF(0.08f, 0.32f, 0.72f);
-            case 5: return D2D1::ColorF(0.38f, 0.42f, 0.48f);
-            default: return D2D1::ColorF(0.10f, 0.13f, 0.18f);
-            }
-        }
-
-        D2D1_COLOR_F background_colour(std::uint8_t const id) noexcept
-        {
-            switch (id) {
-            case 1: return D2D1::ColorF(0.87f, 0.97f, 0.90f);
-            case 2: return D2D1::ColorF(1.00f, 0.89f, 0.89f);
-            case 3: return D2D1::ColorF(1.00f, 0.96f, 0.80f);
-            case 4: return D2D1::ColorF(0.87f, 0.93f, 1.00f);
-            default: return D2D1::ColorF(0.96f, 0.97f, 0.98f);
-            }
+            // Index zero means no colour override. Remaining entries mirror the
+            // public VelocityGridColor enum and deliberately carry no semantics.
+            static constexpr std::array<std::uint32_t, 26> colours{
+                0x000000, 0x000000, 0xFFFFFF, 0x374151, 0x6B7280, 0xD1D5DB,
+                0x991B1B, 0xDC2626, 0xFECACA, 0xEA580C, 0xD97706, 0xEAB308,
+                0x65A30D, 0x166534, 0x16A34A, 0xBBF7D0, 0x0D9488, 0x0891B2,
+                0x1E3A8A, 0x2563EB, 0xBFDBFE, 0x4F46E5, 0x7C3AED, 0x9333EA,
+                0xDB2777, 0x92400E };
+            if (id == 0 || id >= colours.size()) return fallback;
+            auto const value = colours[id];
+            return D2D1::ColorF(
+                static_cast<float>((value >> 16) & 0xff) / 255.0f,
+                static_cast<float>((value >> 8) & 0xff) / 255.0f,
+                static_cast<float>(value & 0xff) / 255.0f);
         }
     }
 
@@ -139,19 +134,21 @@ namespace winrt::VelocityGrid_Native::implementation
             return;
         }
         m_external_requests.erase(request);
-        auto const cell_count = static_cast<std::uint32_t>(row_count * 10);
-        if (row_count <= 0 || values.size() < cell_count || foregrounds.size() < cell_count ||
-            backgrounds.size() < cell_count || icons.size() < cell_count)
+        auto const column_count = m_columns.size();
+        auto const cell_count = row_count > 0
+            ? static_cast<std::uint64_t>(row_count) * column_count : 0;
+        if (row_count <= 0 || column_count == 0 || values.size() != cell_count ||
+            foregrounds.size() != cell_count || backgrounds.size() != cell_count || icons.size() != cell_count)
         {
             ++m_external_failed;
             m_last_provider_error = L"Provider returned an incomplete page";
             return;
         }
-        velocity_grid::page page{ start_row, row_count };
+        velocity_grid::page page{ start_row, row_count, static_cast<std::int32_t>(column_count) };
         page.values.reserve(values.size());
         for (auto const& value : values) page.values.emplace_back(value.c_str());
         page.formats.reserve(cell_count);
-        for (std::uint32_t index = 0; index < cell_count; ++index)
+        for (std::uint64_t index = 0; index < cell_count; ++index)
             page.formats.push_back({ foregrounds[index], backgrounds[index], icons[index] });
         m_cache.insert(std::move(page));
         m_last_provider_error = {};
@@ -175,8 +172,8 @@ namespace winrt::VelocityGrid_Native::implementation
     void VelocityGrid::SetColumns(array_view<hstring const> const headers,
         array_view<double const> const widths, array_view<std::int32_t const> const alignments)
     {
-        if (headers.empty() || headers.size() != widths.size() || headers.size() != alignments.size() || headers.size() > 10)
-            throw hresult_invalid_argument(L"Columns require matching header, width, and alignment arrays with one to ten entries.");
+        if (headers.empty() || headers.size() != widths.size() || headers.size() != alignments.size())
+            throw hresult_invalid_argument(L"Columns require matching, non-empty header, width, and alignment arrays.");
         std::vector<column_definition> columns;
         columns.reserve(headers.size());
         for (std::uint32_t index = 0; index < headers.size(); ++index)
@@ -185,10 +182,15 @@ namespace winrt::VelocityGrid_Native::implementation
                 throw hresult_invalid_argument(L"Column widths must be finite and at least 32 DIPs.");
             columns.push_back({ headers[index].c_str(), widths[index], (std::clamp)(alignments[index], 0, 2) });
         }
+        for (auto const& [id, _] : m_external_requests) m_page_canceled(id);
+        m_external_requests.clear();
+        m_cache.clear();
+        ++m_generation;
+        m_anchor_page = -1;
         m_columns = std::move(columns);
         if (m_selected_column >= static_cast<std::int32_t>(m_columns.size())) m_selected_column = -1;
         update_scrollbars();
-        render();
+        update_viewport();
     }
 
     std::int64_t VelocityGrid::SelectedRow() const noexcept { return m_selected_row; }
@@ -271,7 +273,8 @@ namespace winrt::VelocityGrid_Native::implementation
         {
             auto const row = row_indices[index];
             auto const column = column_indices[index];
-            if (row < 0 || row >= m_row_count || column < 0 || column >= 10) return;
+            if (row < 0 || row >= m_row_count || column < 0 ||
+                column >= static_cast<std::int32_t>(m_columns.size())) return;
             if (m_cache.update_cell(row, column, values[index].c_str(),
                 { foregrounds[index], backgrounds[index], icons[index] }))
             {
@@ -607,8 +610,8 @@ namespace winrt::VelocityGrid_Native::implementation
             float right;
             IDWriteTextFormat* text_format;
         };
-        std::array<visible_column, 10> visible_columns{};
-        std::size_t visible_column_count{};
+        std::vector<visible_column> visible_columns;
+        visible_columns.reserve(m_columns.size());
         double logical_left = 0.0;
         for (std::size_t column = 0; column < m_columns.size(); ++column)
         {
@@ -617,14 +620,13 @@ namespace winrt::VelocityGrid_Native::implementation
             logical_left += m_columns[column].width;
             if (left >= m_width) break;
             if (right <= 0.0f) continue;
-            visible_columns[visible_column_count++] = {
-                column, left, right, m_text_formats[m_columns[column].alignment].Get() };
+            visible_columns.push_back({
+                column, left, right, m_text_formats[m_columns[column].alignment].Get() });
         }
 
         m_d2d_context->FillRectangle({ 0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(header_height) }, m_header_brush.Get());
-        for (std::size_t visible_column_index = 0; visible_column_index < visible_column_count; ++visible_column_index)
+        for (auto const& layout : visible_columns)
         {
-            auto const& layout = visible_columns[visible_column_index];
             auto const left = layout.left;
             auto const right = layout.right;
             m_d2d_context->DrawLine({ right, 0.0f }, { right, static_cast<float>(m_surface_height) }, m_line_brush.Get());
@@ -646,21 +648,20 @@ namespace winrt::VelocityGrid_Native::implementation
             auto const top = static_cast<float>(header_height + visible * m_row_height - m_viewport.leading_row_offset);
             auto const bottom = top + static_cast<float>(m_row_height);
             m_d2d_context->DrawLine({ 0.0f, bottom }, { static_cast<float>(m_width), bottom }, m_line_brush.Get(), 1.0f);
-            for (std::size_t visible_column_index = 0; visible_column_index < visible_column_count; ++visible_column_index)
+            for (auto const& layout : visible_columns)
             {
-                auto const& layout = visible_columns[visible_column_index];
                 auto const left = layout.left;
                 auto const right = layout.right;
                 velocity_grid::cell_format format{};
                 auto cell_index = std::size_t{};
                 if (page)
                 {
-                    cell_index = static_cast<std::size_t>((row - page->start_row) * 10 + layout.index);
+                    cell_index = static_cast<std::size_t>((row - page->start_row) * page->column_count + layout.index);
                     if (cell_index < page->formats.size()) format = page->formats[cell_index];
                 }
                 if (format.background != 0 && m_visual_theme != 2)
                 {
-                    auto colour = background_colour(format.background);
+                    auto colour = palette_colour(format.background, D2D1::ColorF(0.96f, 0.97f, 0.98f));
                     m_cell_format_brush->SetColor(colour);
                     m_d2d_context->FillRectangle({ left, top, right, bottom }, m_cell_format_brush.Get());
                 }
@@ -679,14 +680,19 @@ namespace winrt::VelocityGrid_Native::implementation
                 auto const selected = row == m_selected_row && static_cast<std::int32_t>(layout.index) == m_selected_column;
                 m_cell_format_brush->SetColor(m_visual_theme == 2
                     ? D2D1::ColorF(selected ? D2D1::ColorF::Black : D2D1::ColorF::White)
-                    : foreground_colour(format.foreground));
+                    : palette_colour(format.foreground, m_text_brush->GetColor()));
                 auto text_left = left + 7.0f;
                 if (format.icon != 0)
                 {
                     // Escapes keep these built-in glyphs independent of the compiler's source-file encoding.
-                    static constexpr std::array<std::wstring_view, 5> symbols{
-                        L"", L"\x25B2", L"\x25BC", L"!", L"\x25CF" };
-                    auto const icon = symbols[(std::min<std::size_t>)(format.icon, symbols.size() - 1)];
+                    static constexpr std::array<std::wstring_view, 29> symbols{
+                        L"", L"\x2191", L"\x2193", L"\x2190", L"\x2192",
+                        L"\x25B2", L"\x25BC", L"\x2713", L"\x2715", L"\x26A0",
+                        L"\x24D8", L"\x2605", L"\x25CF", L"\x25A0", L"\x25C6",
+                        L"+", L"\x2212", L"\x25B6", L"\x2016", L"\x25A0",
+                        L"\x25F7", L"\x2691", L"\x2665", L"\x26A1", L"\U0001F514",
+                        L"\U0001F512", L"\U0001F513", L"\U0001F50D", L"\x270E" };
+                    auto const icon = format.icon < symbols.size() ? symbols[format.icon] : symbols[0];
                     D2D1_RECT_F const icon_bounds{ text_left, top + 4.0f, text_left + 16.0f, bottom };
                     m_d2d_context->DrawText(icon.data(), static_cast<UINT32>(icon.size()), m_text_formats[0].Get(),
                         icon_bounds, m_cell_format_brush.Get());

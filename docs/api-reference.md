@@ -10,7 +10,7 @@ This is the supported C# surface. The WinRT API is an implementation boundary un
 - `RowCount`: 64-bit logical size; normally provider-owned.
 - `RowHeight`: fixed DIPs for all rows. Native validation accepts finite values of at least 8.
 - `Columns`: immutable snapshot of configured visible columns.
-- `SetColumns(...)`: one to ten columns mapped to the same zero-based source slots in each ten-cell row payload.
+- `SetColumns(...)`: one or more columns mapped to the same zero-based source slots in each row payload. Columns outside the viewport are not rendered.
 - `FirstVisibleRow` / `LastVisibleRow`: inclusive logical viewport.
 
 ### Navigation and selection
@@ -33,9 +33,9 @@ This is the supported C# surface. The WinRT API is an implementation boundary un
 
 ## Provider/page contract
 
-Providers must return the requested start, positive row count, exactly `RowCount * 10` values, and—if supplied—one format per value. They should observe cancellation, avoid blocking the UI thread before the first asynchronous yield, and return display-ready strings. Sorting/filtering/data access remain provider responsibilities.
+Providers must return the requested start, positive row count, exactly `RowCount * context.ColumnCount` values, and—if supplied—one format per value. They should observe cancellation, avoid blocking the UI thread before the first asynchronous yield, and return display-ready strings. Sorting/filtering/data access remain provider responsibilities.
 
-`VelocityGridFetchContext` contains request ID and generation for correlation; neither is a persistent row identity.
+`VelocityGridFetchContext` contains request ID and generation for correlation plus the active `ColumnCount` required in each returned row; the IDs are not persistent row identities.
 
 ## Columns
 
@@ -45,15 +45,14 @@ Providers must return the requested start, positive row count, exactly `RowCount
 | `Width` | 130 DIPs | finite, at least 32 |
 | `Alignment` | `Left` | `Left`, `Center`, `Right` |
 
-Resizing, reordering, sorting gestures, frozen columns, and more than ten source slots are not public options yet.
+Resizing, reordering, sorting gestures, and frozen columns are not public options yet. The number of configured source columns is not capped; horizontal rendering is limited to columns intersecting the viewport.
 
 ## Formatting
 
-- Foregrounds: `Default`, `Positive`, `Negative`, `Warning`, `Accent`, `Muted`.
-- Backgrounds: `None`, `Positive`, `Negative`, `Warning`, `Accent`.
-- Icons: `None`, `Up`, `Down`, `Warning`, `Information`.
+- Foreground and background: the shared `VelocityGridColor` catalogue contains `None` plus 25 neutral named colours. `None` selects normal theme text for foreground and no fill for background.
+- Icons: `VelocityGridIcon` contains `None` plus 28 caller-selected glyphs including arrows, triangles, status marks, shapes, media controls, and common interface symbols.
 
-High contrast overrides provider palettes for legibility. Never communicate meaning by colour alone.
+The grid assigns no semantic role to a colour or icon. Calling code owns their meaning and should not communicate important state by colour alone.
 
 ## Metrics
 

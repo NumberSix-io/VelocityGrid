@@ -54,7 +54,7 @@ namespace VelocityGrid_Native_Tests
 
         TEST_METHOD(PageCacheUpdatesCachedCellsInPlace)
         {
-            velocity_grid::page page{ 128, 2 };
+            velocity_grid::page page{ 128, 2, 10 };
             page.values.resize(20, L"old");
             velocity_grid::page_cache cache(2);
             cache.insert(std::move(page));

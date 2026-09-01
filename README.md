@@ -2,7 +2,7 @@
 
 VelocityGrid is an experimental, read-only WinUI 3 data grid for very large, remote, or rapidly changing datasets. It requests only the current viewport and a small prefetch window, keeps a bounded native cache, and renders cells with Direct2D/DirectWrite instead of creating a XAML element per cell.
 
-The public control is C#-friendly; viewport calculations, scrolling, caching, formatting, hit testing, and rendering remain in C++/WinRT.
+The primary distribution is NuGet: an idiomatic C# WinUI facade, a WPF XAML Island host, and a native package for C++/WinRT. Viewport calculations, scrolling, caching, formatting, hit testing, and rendering remain native.
 
 ## Why VelocityGrid?
 
@@ -51,9 +51,17 @@ msbuild VelocityGrid\VelocityGrid.slnx /m `
 
 Use `/t:Restore,Build` if native packages have not been restored.
 
-## Use the control
+## Install from NuGet
 
-Reference `VelocityGrid.Managed` and `VelocityGrid.Native`, and copy the platform-specific `VelocityGrid.Native.dll` into the packaged application's output/AppX layout. The basic sample project contains the required reference and copy targets.
+Select a concrete application architecture (`x64`, `x86`, or `ARM64`); VelocityGrid is not an AnyCPU runtime component.
+
+- C# WinUI 3: install `VelocityGrid.WinUI`.
+- WPF: install `VelocityGrid.Wpf`; it transitively installs the C# facade and native runtime.
+- C++/WinRT WinUI 3: install `VelocityGrid.Native.WinUI`; it supplies WinMD metadata, projection headers, and the matching native DLL.
+
+Package consumers do not add project references, run C#/WinRT, or copy native files manually. See the complete [NuGet distribution and consumption guide](docs/nuget-distribution.md).
+
+## Use from C# WinUI
 
 ```xml
 <Window
@@ -78,7 +86,7 @@ TradesGrid.DataProvider = new TradeProvider();
 TradesGrid.DataError += (_, e) => ShowProviderError(e.Exception);
 ```
 
-Providers return one flat row-major page. The current ABI always contains ten source-column slots per row, even when fewer columns are displayed:
+Providers return one flat row-major page. `context.ColumnCount` is the current configured column count, so the provider can produce the correct row shape for any configuration:
 
 ```csharp
 public sealed class TradeProvider : IVelocityGridDataProvider
@@ -90,7 +98,7 @@ public sealed class TradeProvider : IVelocityGridDataProvider
         VelocityGridFetchContext context,
         CancellationToken cancellationToken)
     {
-        var values = new string[range.RowCount * VelocityGridControl.ColumnCount];
+        var values = new string[range.RowCount * context.ColumnCount];
         var formats = new VelocityGridCellFormat[values.Length];
         await LoadDisplayValuesAsync(values, range, cancellationToken);
         return new VelocityGridPage(range.StartRow, range.RowCount, values, formats);
@@ -108,15 +116,42 @@ TradesGrid.ApplyUpdates(new[]
         columnIndex: 1,
         value: "-100.00",
         format: new VelocityGridCellFormat(
-            VelocityGridForeground.Negative,
-            VelocityGridBackground.Negative,
-            VelocityGridIcon.Down))
+            VelocityGridColor.Red,
+            VelocityGridColor.LightRed,
+            VelocityGridIcon.DownArrow))
 });
 ```
 
-The grid applies exactly the visual state supplied by the caller. For a temporary background, send the coloured update and later send another update with `VelocityGridBackground.None`. The grid does not infer direction or run formatting timers.
+The grid applies exactly the visual state supplied by the caller. For a temporary background, send the coloured update and later send another update with `VelocityGridColor.None` as the background. Colours and icons have no semantic meaning to the grid; it does not infer direction or run formatting timers.
 
 See [API/configuration](docs/api-reference.md), [providers](docs/provider-guide.md), [formatting](docs/cell-formatting.md), and [streaming updates](docs/streaming-updates.md) for full contracts and examples.
+
+## Use from WPF
+
+```xml
+<Window ... xmlns:vg="clr-namespace:VelocityGrid.Wpf;assembly=VelocityGrid.Wpf">
+    <vg:VelocityGridHost x:Name="TradesGrid" RowHeight="24" />
+</Window>
+```
+
+```csharp
+TradesGrid.DataProvider = new TradeProvider();
+TradesGrid.Columns = columns;
+```
+
+`VelocityGridHost` owns the `DesktopWindowXamlSource` and HWND lifecycle. Its `Grid` property exposes the underlying managed control after `GridReady` for advanced operations.
+
+## Use from C++/WinRT
+
+```cpp
+#include <winrt/VelocityGrid_Native.h>
+
+winrt::VelocityGrid_Native::VelocityGrid grid;
+grid.RowHeight(24.0);
+Content(grid.View());
+```
+
+The native ABI is page/batch oriented. C++ applications handle `PageRequested`, then call `CompletePage` once per page. See [NuGet distribution and consumption](docs/nuget-distribution.md#c-winui-3).
 
 ## Test and benchmark
 
@@ -146,6 +181,9 @@ SwapChainPanel            small WinUI visual tree and scroll controls
 
 - `VelocityGrid.Native`: WinRT ABI, viewport, scheduler, bounded cache, renderer, diagnostics, theming, and resource recovery.
 - `VelocityGrid.Managed`: provider/control API, cancellation bridge, automation metadata, and theme propagation.
+- `VelocityGrid.Wpf`: WPF `HwndHost` and WinUI XAML Island lifecycle adapter.
+- `VelocityGrid.*.Packaging`: independently versioned NuGet package definitions.
+- `PackageTests`: source-independent C# WinUI, WPF, and C++/WinRT package consumers.
 - `VelocityGrid.Sample.Basic`: provider, columns, benchmarks, caller formatting, and live-market examples.
 - `VelocityGrid.Native.Tests`: viewport, scheduler, cache, and native lifecycle tests.
 - `VelocityGrid.Managed.Tests`: provider, API, automation, validation, and control tests.
@@ -156,10 +194,10 @@ The [design plan](docs/VelocityGrid_Design_and_Development_Plan.md) explains the
 
 | Option | Purpose | Constraint |
 |---|---|---|
-| `DataProvider` | Supplies cancellable viewport pages | Ten source values per row |
+| `DataProvider` | Supplies cancellable viewport pages | `context.ColumnCount` values per row |
 | `RowCount` | Logical dataset size | Normally taken from provider |
 | `RowHeight` | Fixed row height in DIPs | Minimum 8 |
-| `SetColumns(...)` | Header, width, alignment | 1–10; width ≥ 32 DIPs |
+| `SetColumns(...)` | Header, width, alignment | At least one; width ≥ 32 DIPs |
 | `ScrollToRow(...)` | Random logical jump | Clamped to dataset |
 | `ApplyUpdates(...)` | Batched cached-cell changes | Uncached changes ignored |
 | `SelectionChanged` | Logical cell selection | Single cell |
@@ -169,7 +207,7 @@ The [design plan](docs/VelocityGrid_Design_and_Development_Plan.md) explains the
 ## Current limitations
 
 - Read-only; no in-cell editing or CRUD contract.
-- Fixed row height; maximum ten displayed/source columns.
+- Fixed row height; configured columns are horizontally virtualized.
 - Single-cell selection; no ranges, clipboard export, or built-in sorting/filter UI.
 - Provider-owned sorting/filtering and authoritative values for uncached pages.
 - Built-in palette/icons only; no arbitrary templates, controls, brushes, or images in the fast path.
@@ -178,9 +216,9 @@ The [design plan](docs/VelocityGrid_Design_and_Development_Plan.md) explains the
 
 ## Troubleshooting
 
-- **Cells remain “Loading”:** assign a provider and return exactly `range.RowCount * 10` values. Subscribe to `DataError`.
+- **Cells remain “Loading”:** assign a provider and return exactly `range.RowCount * context.ColumnCount` values. Subscribe to `DataError`.
 - **Sample executable will not start:** launch/deploy the packaged project; do not run the `.exe` directly.
-- **Native DLL missing:** copy the matching `VelocityGrid.Native.dll` to output and AppX layout as the sample does.
+- **Native DLL missing:** select x64, x86, or ARM64 and restore the appropriate VelocityGrid package; do not use AnyCPU for the executable.
 - **C++ package targets missing:** restore NuGet and install the C++/WinRT/Windows App SDK workloads.
 - **Release opens Debug:** the development identity may remain registered to Debug; launch the desired Visual Studio configuration or replace the registration.
 - **FPS is near 60:** presentation is display-synchronized; compare duration, cache/requests, working set, and latency rather than FPS alone.

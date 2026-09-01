@@ -20,6 +20,7 @@ Start with the repository [README](../README.md), then choose the document match
 
 ## Build and release
 
+- [NuGet distribution and C#/WPF/C++ consumption](nuget-distribution.md)
 - [Initial solution preflight](solution-preflight.md)
 - [1.0 release checklist](release-checklist.md)
 - [Contributing](../CONTRIBUTING.md)

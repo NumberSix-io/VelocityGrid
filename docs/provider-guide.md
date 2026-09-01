@@ -1,6 +1,6 @@
 # Managed data providers
 
-Implement `IVelocityGridDataProvider`; do not expose a giant collection. The grid requests a contiguous logical range and expects one flat row-major page with ten source values per row.
+Implement `IVelocityGridDataProvider`; do not expose a giant collection. The grid requests a contiguous logical range and expects one flat row-major page using the column count supplied in the fetch context.
 
 ```csharp
 public sealed class DatabaseProvider : IVelocityGridDataProvider
@@ -13,7 +13,7 @@ public sealed class DatabaseProvider : IVelocityGridDataProvider
         CancellationToken cancellationToken)
     {
         var records = await QueryAsync(range.StartRow, range.RowCount, cancellationToken);
-        var values = new string[range.RowCount * VelocityGridControl.ColumnCount];
+        var values = new string[range.RowCount * context.ColumnCount];
         var formats = new VelocityGridCellFormat[values.Length];
         FlattenDisplayData(records, values, formats);
         return new VelocityGridPage(range.StartRow, range.RowCount, values, formats);
@@ -26,10 +26,10 @@ Assign it to `DataProvider`. The grid adopts its `RowCount`; assignment before l
 ## Page contract
 
 - `StartRow` is non-negative; `RowCount` is positive.
-- `Values.Length == RowCount * 10`.
+- `Values.Length == RowCount * context.ColumnCount`.
 - Optional formats contain exactly one entry per value.
-- Index with `rowOffset * 10 + columnIndex`.
-- Configuring fewer visible columns changes layout, not the ten-slot ABI.
+- Index with `rowOffset * context.ColumnCount + columnIndex`.
+- Changing the configured columns cancels outstanding requests and invalidates cached pages. New requests contain the new `context.ColumnCount`.
 
 The provider remains authoritative. Uncached streaming changes are ignored, so later fetches must contain current state.
 

@@ -2,21 +2,17 @@
 
 VelocityGrid is a read-only display grid. Providers may attach a compact `VelocityGridCellFormat` to every page value, and streaming updates may replace a value and its format in the same batch.
 
-The initial bounded formatting vocabulary contains foreground and background palette identifiers and a fixed icon catalogue (`Up`, `Down`, `Warning`, and `Information`). It intentionally does not accept arbitrary brushes, images, templates, or per-cell callbacks.
+Formatting uses neutral identifiers with no application meaning attached. Foreground and background both use `VelocityGridColor`; icons use `VelocityGridIcon`. The bounded catalogues keep each cached field to one byte and avoid brushes, images, templates, or managed callbacks in the render path.
 
-| Semantic role | Foreground | Background | Typical icon |
-|---|---|---|---|
-| Default | `Default` | `None` | `None` |
-| Positive | `Positive` | `Positive` | `Up` |
-| Negative | `Negative` | `Negative` | `Down` |
-| Attention | `Warning` | `Warning` | `Warning` |
-| Informational | `Accent`/`Muted` | `Accent`/`None` | `Information` |
+`VelocityGridColor` contains `None` plus 25 colours: `Black`, `White`, `DarkGray`, `Gray`, `LightGray`, `DarkRed`, `Red`, `LightRed`, `Orange`, `Amber`, `Yellow`, `Lime`, `DarkGreen`, `Green`, `LightGreen`, `Teal`, `Cyan`, `DarkBlue`, `Blue`, `LightBlue`, `Indigo`, `Violet`, `Purple`, `Pink`, and `Brown`. For a foreground, `None` uses the grid's normal theme text colour. For a background, `None` performs no cell fill.
+
+`VelocityGridIcon` contains `None` plus `UpArrow`, `DownArrow`, `LeftArrow`, `RightArrow`, `UpTriangle`, `DownTriangle`, `Check`, `Cross`, `Warning`, `Information`, `Star`, `Circle`, `Square`, `Diamond`, `Plus`, `Minus`, `Play`, `Pause`, `Stop`, `Clock`, `Flag`, `Heart`, `Lightning`, `Bell`, `Lock`, `Unlock`, `Search`, and `Edit`.
 
 ```csharp
 var format = new VelocityGridCellFormat(
-    VelocityGridForeground.Positive,
-    VelocityGridBackground.Positive,
-    VelocityGridIcon.Up);
+    VelocityGridColor.Green,
+    VelocityGridColor.LightGreen,
+    VelocityGridIcon.UpArrow);
 
 grid.ApplyUpdates(new[] { new VelocityGridCellUpdate(row, column, value, format) });
 ```
@@ -27,4 +23,4 @@ The grid applies exactly the state supplied by the caller. It does not infer col
 
 If another value arrives before a scheduled clear, replace that clear and retain the newest value/format. Do not allow an old delayed update to restore stale content. The basic sample keeps one pending clear per `(row, column)` to demonstrate this.
 
-Windows high contrast suppresses provider foreground/background palettes to preserve legibility. Icons and values remain, so applications should not encode meaning with colour alone.
+Applications should not encode meaning with colour alone; pair important colour states with text or an icon where accessibility requires it.

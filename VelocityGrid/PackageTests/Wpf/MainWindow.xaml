@@ -1,0 +1,9 @@
+<Window x:Class="VelocityGrid.PackageTests.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vg="clr-namespace:VelocityGrid.Wpf;assembly=VelocityGrid.Wpf"
+        Title="VelocityGrid WPF package sample" Width="1000" Height="650">
+    <Grid Margin="12">
+        <vg:VelocityGridHost x:Name="GridHost" RowHeight="24" />
+    </Grid>
+</Window>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations"><ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration></ItemGroup>
+  <PropertyGroup Label="Globals"><ProjectGuid>{DCC0A7F4-41E5-4DB6-9957-5307C3E436E5}</ProjectGuid><Keyword>Win32Proj</Keyword><WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion><WindowsTargetPlatformMinVersion>10.0.17763.0</WindowsTargetPlatformMinVersion><CppWinRTOptimized>true</CppWinRTOptimized><UseWinUI>true</UseWinUI></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration"><ConfigurationType>StaticLibrary</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup><RestoreSources>$(MSBuildThisFileDirectory)..\..\artifacts\packages;https://api.nuget.org/v3/index.json</RestoreSources><VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.9</VelocityGridPackageVersion><OutDir>$(MSBuildThisFileDirectory)bin\</OutDir><IntDir>$(MSBuildThisFileDirectory)obj\</IntDir></PropertyGroup>
+  <ItemDefinitionGroup><ClCompile><LanguageStandard>stdcpp20</LanguageStandard><WarningLevel>Level4</WarningLevel></ClCompile></ItemDefinitionGroup>
+  <ItemGroup><ClCompile Include="PackageSmoke.cpp" /></ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="VelocityGrid.Native.WinUI" Version="$(VelocityGridPackageVersion)" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

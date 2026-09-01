@@ -17,6 +17,7 @@ namespace velocity_grid
     {
         std::int64_t start_row{};
         std::int32_t row_count{};
+        std::int32_t column_count{};
         std::vector<std::wstring> values;
         std::vector<cell_format> formats;
 

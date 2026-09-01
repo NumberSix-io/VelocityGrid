@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework><IsPackable>true</IsPackable><IncludeBuildOutput>false</IncludeBuildOutput>
+    <VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.9</VelocityGridPackageVersion><NuspecFile>VelocityGrid.WinUI.nuspec</NuspecFile><NuspecProperties>version=$(VelocityGridPackageVersion)</NuspecProperties>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\packages</PackageOutputPath>
+  </PropertyGroup>
+  <Target Name="ValidateVelocityGridPackageInputs" BeforeTargets="Pack">
+    <Error Condition="!Exists('..\VelocityGrid.Managed\bin\x64\Release\net8.0-windows10.0.19041.0\VelocityGrid.Managed.dll')" Text="Build VelocityGrid.Managed Release x64 before packing." />
+  </Target>
+</Project>

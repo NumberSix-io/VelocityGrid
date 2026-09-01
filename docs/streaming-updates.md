@@ -9,7 +9,7 @@ grid.ApplyUpdates(feedBatch.Select(change => new VelocityGridCellUpdate(
 
 ## Semantics
 
-- Coordinates are zero-based logical rows and source columns 0–9.
+- Coordinates are zero-based logical rows and configured source columns.
 - Native processing prioritizes visible rows, then other cached rows.
 - Uncached changes are ignored; the provider supplies authoritative future pages.
 - Off-screen-only changes do not request presentation.

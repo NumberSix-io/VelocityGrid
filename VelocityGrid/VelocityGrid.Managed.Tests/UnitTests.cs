@@ -92,6 +92,17 @@ namespace VelocityGrid.Managed.Tests
         }
 
         [UITestMethod]
+        public void GridAcceptsMoreThanTenColumns()
+        {
+            var grid = new VelocityGrid.Managed.VelocityGridControl();
+            grid.SetColumns(System.Linq.Enumerable.Select(
+                System.Linq.Enumerable.Range(1, 24),
+                index => new VelocityGrid.Managed.VelocityGridColumn($"Column {index}")));
+
+            Assert.AreEqual(24, grid.Columns.Count);
+        }
+
+        [UITestMethod]
         public void PerformanceMetricsCanBeReset()
         {
             var grid = new VelocityGrid.Managed.VelocityGridControl { RowCount = 1_000_000 };
@@ -109,14 +120,14 @@ namespace VelocityGrid.Managed.Tests
             Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
                 new VelocityGrid.Managed.VelocityGridCellUpdate(-1, 0, "value"));
             Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
-                new VelocityGrid.Managed.VelocityGridCellUpdate(0, 10, "value"));
+                new VelocityGrid.Managed.VelocityGridCellUpdate(0, -1, "value"));
         }
 
         [TestMethod]
         public void PageFormattingMustMatchCellCount()
         {
             Assert.ThrowsExactly<ArgumentException>(() => new VelocityGrid.Managed.VelocityGridPage(
-                0, 1, new string[VelocityGrid.Managed.VelocityGridControl.ColumnCount],
+                0, 1, new string[12],
                 new VelocityGrid.Managed.VelocityGridCellFormat[1]));
         }
 
@@ -128,8 +139,21 @@ namespace VelocityGrid.Managed.Tests
                 new VelocityGrid.Managed.VelocityGridRange(0, 1),
                 new VelocityGrid.Managed.VelocityGridFetchContext(1, 1), default);
 
-            Assert.AreEqual(VelocityGrid.Managed.VelocityGridIcon.Up, page.Formats[5].Icon);
+            Assert.AreEqual(VelocityGrid.Managed.VelocityGridIcon.UpArrow, page.Formats[5].Icon);
             Assert.AreEqual(page.Values.Length, page.Formats.Length);
+        }
+
+        [TestMethod]
+        public async Task SyntheticProviderUsesRequestedColumnCount()
+        {
+            var provider = new VelocityGrid.Managed.SyntheticDataProvider(100);
+            var page = await provider.GetRowsAsync(
+                new VelocityGrid.Managed.VelocityGridRange(0, 2),
+                new VelocityGrid.Managed.VelocityGridFetchContext(1, 1, 24), default);
+
+            Assert.AreEqual(24, page.ColumnCount);
+            Assert.AreEqual(48, page.Values.Length);
+            Assert.AreEqual("R1  C24", page.Values[47]);
         }
 
         [UITestMethod]
@@ -153,6 +177,15 @@ namespace VelocityGrid.Managed.Tests
 
             Assert.AreEqual(128L, error.RequestedRange.StartRow);
             Assert.AreSame(exception, error.Exception);
+        }
+
+        [TestMethod]
+        public void FormattingCatalogueAbiValuesRemainStable()
+        {
+            Assert.AreEqual((byte)7, (byte)VelocityGrid.Managed.VelocityGridColor.Red);
+            Assert.AreEqual((byte)25, (byte)VelocityGrid.Managed.VelocityGridColor.Brown);
+            Assert.AreEqual((byte)2, (byte)VelocityGrid.Managed.VelocityGridIcon.DownArrow);
+            Assert.AreEqual((byte)28, (byte)VelocityGrid.Managed.VelocityGridIcon.Edit);
         }
 
     }

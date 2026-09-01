@@ -1,0 +1,42 @@
+name: Build and validate NuGet packages
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ "v*" ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  packages:
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - uses: microsoft/setup-msbuild@v2
+      - name: Select package version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            "value=${{ github.ref_name }}".Replace("value=v", "value=") | Add-Content $env:GITHUB_OUTPUT
+          } else {
+            "value=0.1.0-ci.${{ github.run_number }}" | Add-Content $env:GITHUB_OUTPUT
+          }
+      - name: Build, pack, and test consumers
+        shell: pwsh
+        run: ./build/Build-Packages.ps1 -Version "${{ steps.version.outputs.value }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VelocityGrid-NuGet-${{ steps.version.outputs.value }}
+          path: VelocityGrid/artifacts/packages/*.*nupkg
+      - name: Publish tagged packages
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          dotnet nuget push "VelocityGrid/artifacts/packages/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "${{ secrets.NUGET_API_KEY }}" --skip-duplicate
+          dotnet nuget push "VelocityGrid/artifacts/packages/*.snupkg" --source https://api.nuget.org/v3/index.json --api-key "${{ secrets.NUGET_API_KEY }}" --skip-duplicate

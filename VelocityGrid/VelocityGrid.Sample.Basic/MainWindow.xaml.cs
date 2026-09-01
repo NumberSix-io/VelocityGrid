@@ -39,7 +39,13 @@ namespace VelocityGrid.Sample.Basic
                 new VelocityGrid.Managed.VelocityGridColumn("Venue", 120),
                 new VelocityGrid.Managed.VelocityGridColumn("Updated", 160),
                 new VelocityGrid.Managed.VelocityGridColumn("Owner", 140),
-                new VelocityGrid.Managed.VelocityGridColumn("Notes", 220)
+                new VelocityGrid.Managed.VelocityGridColumn("Notes", 220),
+                new VelocityGrid.Managed.VelocityGridColumn("Bid", 120, VelocityGrid.Managed.VelocityGridTextAlignment.Right),
+                new VelocityGrid.Managed.VelocityGridColumn("Ask", 120, VelocityGrid.Managed.VelocityGridTextAlignment.Right),
+                new VelocityGrid.Managed.VelocityGridColumn("Change", 110, VelocityGrid.Managed.VelocityGridTextAlignment.Right),
+                new VelocityGrid.Managed.VelocityGridColumn("Volume", 140, VelocityGrid.Managed.VelocityGridTextAlignment.Right),
+                new VelocityGrid.Managed.VelocityGridColumn("Currency", 100, VelocityGrid.Managed.VelocityGridTextAlignment.Center),
+                new VelocityGrid.Managed.VelocityGridColumn("Exchange Time", 170)
             });
             _marketTimer.Tick += OnMarketTick;
             _flashTimer.Tick += OnFlashTick;
@@ -96,26 +102,26 @@ namespace VelocityGrid.Sample.Basic
                 var restingFormat = column switch
                 {
                     4 when rising => new VelocityGrid.Managed.VelocityGridCellFormat(
-                        VelocityGrid.Managed.VelocityGridForeground.Positive,
-                        VelocityGrid.Managed.VelocityGridBackground.None,
-                        VelocityGrid.Managed.VelocityGridIcon.Up),
+                        VelocityGrid.Managed.VelocityGridColor.Green,
+                        VelocityGrid.Managed.VelocityGridColor.None,
+                        VelocityGrid.Managed.VelocityGridIcon.UpArrow),
                     4 => new VelocityGrid.Managed.VelocityGridCellFormat(
-                        VelocityGrid.Managed.VelocityGridForeground.Negative,
-                        VelocityGrid.Managed.VelocityGridBackground.None,
-                        VelocityGrid.Managed.VelocityGridIcon.Down),
+                        VelocityGrid.Managed.VelocityGridColor.Red,
+                        VelocityGrid.Managed.VelocityGridColor.None,
+                        VelocityGrid.Managed.VelocityGridIcon.DownArrow),
                     5 => new VelocityGrid.Managed.VelocityGridCellFormat(
-                        VelocityGrid.Managed.VelocityGridForeground.Warning,
-                        VelocityGrid.Managed.VelocityGridBackground.None,
+                        VelocityGrid.Managed.VelocityGridColor.Amber,
+                        VelocityGrid.Managed.VelocityGridColor.None,
                         VelocityGrid.Managed.VelocityGridIcon.Warning),
                     _ => new VelocityGrid.Managed.VelocityGridCellFormat(
-                        VelocityGrid.Managed.VelocityGridForeground.Muted)
+                        VelocityGrid.Managed.VelocityGridColor.Gray)
                 };
                 var flashBackground = restingFormat.Foreground switch
                 {
-                    VelocityGrid.Managed.VelocityGridForeground.Positive => VelocityGrid.Managed.VelocityGridBackground.Positive,
-                    VelocityGrid.Managed.VelocityGridForeground.Negative => VelocityGrid.Managed.VelocityGridBackground.Negative,
-                    VelocityGrid.Managed.VelocityGridForeground.Warning => VelocityGrid.Managed.VelocityGridBackground.Warning,
-                    _ => VelocityGrid.Managed.VelocityGridBackground.None
+                    VelocityGrid.Managed.VelocityGridColor.Green => VelocityGrid.Managed.VelocityGridColor.LightGreen,
+                    VelocityGrid.Managed.VelocityGridColor.Red => VelocityGrid.Managed.VelocityGridColor.LightRed,
+                    VelocityGrid.Managed.VelocityGridColor.Amber => VelocityGrid.Managed.VelocityGridColor.Yellow,
+                    _ => VelocityGrid.Managed.VelocityGridColor.None
                 };
                 var flashFormat = restingFormat with { Background = flashBackground };
                 updates[index] = new(row, column, value, flashFormat);
