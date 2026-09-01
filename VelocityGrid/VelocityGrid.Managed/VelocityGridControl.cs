@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +17,7 @@ namespace VelocityGrid.Managed;
 /// </summary>
 public sealed class VelocityGridControl : UserControl
 {
+    /// <summary>Number of source slots currently required in every provider row.</summary>
     public const int ColumnCount = 10;
 
     private readonly VelocityGrid_Native.VelocityGrid _nativeGrid = new();
@@ -29,27 +32,42 @@ public sealed class VelocityGridControl : UserControl
         HorizontalContentAlignment = HorizontalAlignment.Stretch;
         VerticalContentAlignment = VerticalAlignment.Stretch;
         IsTabStop = true;
+        AutomationProperties.SetName(this, "VelocityGrid");
+        AutomationProperties.SetHelpText(this, "Read-only virtual data grid. Use arrow, Home, End, Page Up, and Page Down keys to navigate.");
+        AutomationProperties.SetLiveSetting(this, AutomationLiveSetting.Polite);
         AddHandler(PointerPressedEvent, new PointerEventHandler(OnAnyPointerPressed), true);
         KeyDown += OnGridKeyDown;
+        GotFocus += OnFocusChanged;
+        LostFocus += OnFocusChanged;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         SetColumns(Enumerable.Range(1, ColumnCount).Select(index => new VelocityGridColumn($"Column {index}")));
     }
 
+    /// <summary>Raised after native pointer or keyboard selection changes.</summary>
     public event EventHandler<VelocityGridSelectionChangedEventArgs>? SelectionChanged;
+    /// <summary>Raised when a provider request fails for a reason other than cancellation.</summary>
+    public event EventHandler<VelocityGridDataErrorEventArgs>? DataError;
+    /// <summary>Current immutable visible-column configuration.</summary>
     public IReadOnlyList<VelocityGridColumn> Columns => _columns;
+    /// <summary>Selected zero-based logical row, or -1 when no cell is selected.</summary>
     public long SelectedRow => _nativeGrid.SelectedRow;
+    /// <summary>Selected zero-based source column, or -1 when no cell is selected.</summary>
     public int SelectedColumn => _nativeGrid.SelectedColumn;
 
+    /// <summary>Returns a point-in-time copy of native diagnostic counters.</summary>
     public VelocityGridPerformanceMetrics PerformanceMetrics => new(
         _nativeGrid.FrameCount, _nativeGrid.CacheHits, _nativeGrid.CacheMisses, _nativeGrid.RequestCount,
         _nativeGrid.UpdateBatchCount, _nativeGrid.UpdateCellCount, _nativeGrid.UpdateRenderCount,
         _nativeGrid.LastUpdateLatencyMicroseconds);
 
+    /// <summary>Resets counters without clearing cached data or selection.</summary>
     public void ResetPerformanceMetrics() => _nativeGrid.ResetMetrics();
 
+    /// <summary>Jumps directly to a logical row; native code clamps the value.</summary>
     public void ScrollToRow(long rowIndex) => _nativeGrid.ScrollToRow(rowIndex);
 
+    /// <summary>Applies a caller-owned batch to resident native cache entries.</summary>
     public void ApplyUpdates(IEnumerable<VelocityGridCellUpdate> updates)
     {
         ArgumentNullException.ThrowIfNull(updates);
@@ -64,6 +82,7 @@ public sealed class VelocityGridControl : UserControl
             batch.Select(update => (byte)update.Format.Icon).ToArray());
     }
 
+    /// <summary>Replaces the visible column snapshot and native layout metadata.</summary>
     public void SetColumns(IEnumerable<VelocityGridColumn> columns)
     {
         ArgumentNullException.ThrowIfNull(columns);
@@ -77,6 +96,7 @@ public sealed class VelocityGridControl : UserControl
         _columns = snapshot;
     }
 
+    /// <summary>Gets or sets the viewport-driven page provider.</summary>
     public IVelocityGridDataProvider? DataProvider
     {
         get => _dataProvider;
@@ -92,24 +112,32 @@ public sealed class VelocityGridControl : UserControl
         }
     }
 
+    /// <summary>Gets or sets the 64-bit logical dataset size.</summary>
     public long RowCount
     {
         get => _nativeGrid.RowCount;
         set => _nativeGrid.RowCount = value;
     }
 
+    /// <summary>Gets or sets the fixed row height in device-independent pixels.</summary>
     public double RowHeight
     {
         get => _nativeGrid.RowHeight;
         set => _nativeGrid.RowHeight = value;
     }
 
+    /// <summary>First logical row intersecting the viewport.</summary>
     public long FirstVisibleRow => _nativeGrid.FirstVisibleRow;
 
+    /// <summary>Last logical row intersecting the viewport.</summary>
     public long LastVisibleRow => _nativeGrid.LastVisibleRow;
+
+    protected override AutomationPeer OnCreateAutomationPeer() => new VelocityGridAutomationPeer(this);
 
     private async void OnPageRequested(long startRow, int rowCount, ulong requestId, ulong generation)
     {
+        // This callback begins on the UI thread. The provider owns asynchronous I/O;
+        // completion is marshalled back here before crossing the ABI once per page.
         var provider = _dataProvider;
         if (provider is null) return;
         var cancellation = new CancellationTokenSource();
@@ -132,7 +160,13 @@ public sealed class VelocityGridControl : UserControl
         catch (Exception error)
         {
             if (!cancellation.IsCancellationRequested)
+            {
                 _nativeGrid.FailPage(requestId, generation, error.Message);
+                AutomationProperties.SetItemStatus(this, $"Data loading error: {error.Message}");
+                FrameworkElementAutomationPeer.FromElement(this)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+                DataError?.Invoke(this, new VelocityGridDataErrorEventArgs(
+                    new VelocityGridRange(startRow, rowCount), error));
+            }
         }
         finally
         {
@@ -148,6 +182,8 @@ public sealed class VelocityGridControl : UserControl
 
     private void CancelAllRequests()
     {
+        // Cancellation is cooperative; clearing the registry after signaling makes
+        // later native cancellation notifications harmless no-ops.
         foreach (var cancellation in _requests.Values) cancellation.Cancel();
         _requests.Clear();
     }
@@ -155,6 +191,9 @@ public sealed class VelocityGridControl : UserControl
     private void OnLoaded(object sender, RoutedEventArgs args)
     {
         _isLoaded = true;
+        ActualThemeChanged -= OnActualThemeChanged;
+        ActualThemeChanged += OnActualThemeChanged;
+        UpdateVisualTheme();
         _nativeGrid.PageRequested -= OnPageRequested;
         _nativeGrid.PageCanceled -= OnPageCanceled;
         _nativeGrid.PageRequested += OnPageRequested;
@@ -167,6 +206,7 @@ public sealed class VelocityGridControl : UserControl
     private void OnUnloaded(object sender, RoutedEventArgs args)
     {
         _isLoaded = false;
+        ActualThemeChanged -= OnActualThemeChanged;
         _nativeGrid.ExternalProviderEnabled = false;
         CancelAllRequests();
         _nativeGrid.PageRequested -= OnPageRequested;
@@ -174,8 +214,19 @@ public sealed class VelocityGridControl : UserControl
         _nativeGrid.SelectionChanged -= OnNativeSelectionChanged;
     }
 
+    private void OnActualThemeChanged(FrameworkElement sender, object args) => UpdateVisualTheme();
+
+    private void UpdateVisualTheme()
+    {
+        _nativeGrid.VisualTheme = ActualTheme == ElementTheme.Dark ? 1 : 0;
+    }
+
     private void OnNativeSelectionChanged(long rowIndex, int columnIndex)
     {
+        var columnName = columnIndex >= 0 && columnIndex < _columns.Count
+            ? _columns[columnIndex].Header : $"Column {columnIndex + 1}";
+        AutomationProperties.SetItemStatus(this, $"Row {rowIndex + 1}, {columnName}");
+        FrameworkElementAutomationPeer.FromElement(this)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
         SelectionChanged?.Invoke(this, new VelocityGridSelectionChangedEventArgs(rowIndex, columnIndex));
     }
 
@@ -183,6 +234,8 @@ public sealed class VelocityGridControl : UserControl
     {
         Focus(FocusState.Pointer);
     }
+
+    private void OnFocusChanged(object sender, RoutedEventArgs args) => _nativeGrid.HasKeyboardFocus = FocusState != FocusState.Unfocused;
 
     private void OnGridKeyDown(object sender, KeyRoutedEventArgs args)
     {
@@ -203,4 +256,13 @@ public sealed class VelocityGridControl : UserControl
         args.Handled = true;
     }
 
+}
+
+internal sealed class VelocityGridAutomationPeer(VelocityGridControl owner) : FrameworkElementAutomationPeer(owner)
+{
+    protected override string GetClassNameCore() => nameof(VelocityGridControl);
+    protected override string GetNameCore() => string.IsNullOrWhiteSpace(base.GetNameCore()) ? "VelocityGrid" : base.GetNameCore();
+    protected override string GetHelpTextCore() =>
+        "Read-only virtual data grid with keyboard selection and viewport-driven data loading.";
+    protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.DataGrid;
 }

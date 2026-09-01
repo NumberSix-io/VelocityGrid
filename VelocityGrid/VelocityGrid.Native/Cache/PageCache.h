@@ -11,6 +11,8 @@
 
 namespace velocity_grid
 {
+    // UI-thread-owned bounded LRU. Pages are the eviction unit so memory does not
+    // grow with the logical dataset and render-time lookup never crosses the ABI.
     class page_cache
     {
     public:

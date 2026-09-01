@@ -12,6 +12,8 @@
 
 namespace velocity_grid
 {
+    // Completion values contain no reference to the control or XAML objects; detached
+    // workers communicate only through shared_state and are safe during teardown.
     struct completed_request
     {
         std::uint64_t request_id{};
@@ -28,6 +30,8 @@ namespace velocity_grid
         std::uint64_t stale{};
     };
 
+    // Synthetic asynchronous source used to exercise cancellation/generation policy.
+    // Managed applications normally use IVelocityGridDataProvider instead.
     class request_scheduler
     {
     public:

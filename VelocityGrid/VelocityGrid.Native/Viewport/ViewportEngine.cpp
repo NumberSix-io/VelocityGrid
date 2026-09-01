@@ -18,6 +18,8 @@ namespace velocity_grid
             return 0.0;
         }
 
+        // A logical dataset may imply a pixel extent larger than an integer or double
+        // intermediate. Long double keeps the clamp stable without a physical canvas.
         auto const extent = static_cast<long double>(row_count) * row_height;
         auto const maximum = (std::max)(0.0L, extent - (std::max)(0.0, viewport_height));
         auto const safe_maximum = static_cast<double>((std::min)(

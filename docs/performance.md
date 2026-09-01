@@ -1,5 +1,7 @@
 # VelocityGrid performance baseline
 
+> Historical results below include both the original high-rate Phase 7 stream and later optimized builds. The current basic sample intentionally uses sparse trading-style updates; reproduce the high-rate rows only with a matching stress workload.
+
 Phase 6 uses the benchmark runner in `VelocityGrid.Sample.Basic`. It exercises the real WinRT, viewport, cache, provider, DirectWrite, Direct2D, and swap-chain paths. Results are machine-specific and must identify the build and hardware used.
 
 ## Reproduce the baseline

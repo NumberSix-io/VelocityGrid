@@ -17,6 +17,8 @@
 
 namespace winrt::VelocityGrid_Native::implementation
 {
+    // Native host for the small WinUI chrome and immediate-mode grid surface. All
+    // methods are UI-thread-affine except work encapsulated by request_scheduler.
     struct VelocityGrid : VelocityGridT<VelocityGrid>
     {
         VelocityGrid();
@@ -31,6 +33,10 @@ namespace winrt::VelocityGrid_Native::implementation
         Microsoft::UI::Xaml::UIElement View() const noexcept;
         bool ExternalProviderEnabled() const noexcept;
         void ExternalProviderEnabled(bool value);
+        std::int32_t VisualTheme() const noexcept;
+        void VisualTheme(std::int32_t value);
+        bool HasKeyboardFocus() const noexcept;
+        void HasKeyboardFocus(bool value);
         winrt::event_token PageRequested(VelocityGrid_Native::PageRequestedHandler const& handler);
         void PageRequested(winrt::event_token const& token) noexcept;
         winrt::event_token PageCanceled(VelocityGrid_Native::PageCanceledHandler const& handler);
@@ -65,6 +71,8 @@ namespace winrt::VelocityGrid_Native::implementation
     private:
         void build_visual_tree();
         void create_device_resources();
+        void update_theme_resources();
+        void recover_device_resources() noexcept;
         void create_size_dependent_resources(double width, double height);
         void render();
         void request_render();
@@ -118,6 +126,7 @@ namespace winrt::VelocityGrid_Native::implementation
             std::uint64_t generation;
         };
         bool m_external_provider_enabled{};
+        std::int32_t m_visual_theme{};
         std::uint64_t m_next_external_request_id{ 1 };
         std::unordered_map<std::uint64_t, external_request> m_external_requests;
         std::uint64_t m_external_requested{};

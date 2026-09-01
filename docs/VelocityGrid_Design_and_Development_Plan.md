@@ -9,6 +9,8 @@
 **Status:** Initial architecture and development plan  
 **Purpose:** Flagship open-source component demonstrating high-performance Windows desktop UI engineering
 
+> **Implementation note (September 2026):** Phases 0–9 have been implemented as an initial public-repository candidate. This document preserves the original design rationale, proposed structure, and future options; it is not the concise usage reference. Start with the repository README and [documentation index](README.md), and use [api-reference.md](api-reference.md) for the current supported surface.
+
 ---
 
 # 1. Executive Summary

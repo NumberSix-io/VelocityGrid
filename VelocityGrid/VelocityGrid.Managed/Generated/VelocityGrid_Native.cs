@@ -27,7 +27,7 @@ using WinRT.Interop;
 
 namespace VelocityGrid_Native
 {
-    [global::WinRT.WindowsRuntimeType("VelocityGrid_Native")][Guid("734492DA-6367-5CED-BFD7-5CC95B46F5B0")][global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.IVelocityGrid))]
+    [global::WinRT.WindowsRuntimeType("VelocityGrid_Native")][Guid("BCACEC69-83A4-54D1-8092-4BD4429A4424")][global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.IVelocityGrid))]
     internal interface IVelocityGrid
     {
         void CompletePage(ulong requestId, ulong generation, long startRow, int rowCount, string[] values, byte[] foregrounds, byte[] backgrounds, byte[] icons);
@@ -42,6 +42,7 @@ namespace VelocityGrid_Native
         bool ExternalProviderEnabled { get; set; }
         long FirstVisibleRow { get; }
         ulong FrameCount { get; }
+        bool HasKeyboardFocus { get; set; }
         ulong LastUpdateLatencyMicroseconds { get; }
         long LastVisibleRow { get; }
         ulong RequestCount { get; }
@@ -53,6 +54,7 @@ namespace VelocityGrid_Native
         ulong UpdateCellCount { get; }
         ulong UpdateRenderCount { get; }
         global::Microsoft.UI.Xaml.UIElement View { get; }
+        int VisualTheme { get; set; }
         event PageCanceledHandler PageCanceled;
         event PageRequestedHandler PageRequested;
         event SelectionChangedHandler SelectionChanged;
@@ -186,6 +188,12 @@ namespace VelocityGrid_Native
 
         public ulong FrameCount => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_FrameCount(_objRef_global__VelocityGrid_Native_IVelocityGrid);
 
+        public bool HasKeyboardFocus
+        {
+            get => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_HasKeyboardFocus(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+            set => global::ABI.VelocityGrid_Native.IVelocityGridMethods.set_HasKeyboardFocus(_objRef_global__VelocityGrid_Native_IVelocityGrid, value);
+        }
+
         public ulong LastUpdateLatencyMicroseconds => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_LastUpdateLatencyMicroseconds(_objRef_global__VelocityGrid_Native_IVelocityGrid);
 
         public long LastVisibleRow => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_LastVisibleRow(_objRef_global__VelocityGrid_Native_IVelocityGrid);
@@ -215,6 +223,12 @@ namespace VelocityGrid_Native
         public ulong UpdateRenderCount => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_UpdateRenderCount(_objRef_global__VelocityGrid_Native_IVelocityGrid);
 
         public global::Microsoft.UI.Xaml.UIElement View => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_View(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+
+        public int VisualTheme
+        {
+            get => global::ABI.VelocityGrid_Native.IVelocityGridMethods.get_VisualTheme(_objRef_global__VelocityGrid_Native_IVelocityGrid);
+            set => global::ABI.VelocityGrid_Native.IVelocityGridMethods.set_VisualTheme(_objRef_global__VelocityGrid_Native_IVelocityGrid, value);
+        }
 
         private bool IsOverridableInterface(Guid iid) => false;
 
@@ -269,7 +283,7 @@ namespace ABI.VelocityGrid_Native
                 (__backgrounds_length, __backgrounds_data) = MarshalBlittable<byte>.GetAbiArray(__backgrounds);
                 __icons = MarshalBlittable<byte>.CreateMarshalerArray(icons);
                 (__icons_length, __icons_data) = MarshalBlittable<byte>.GetAbiArray(__icons);
-                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong, ulong, long, int, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[19](ThisPtr, requestId, generation, startRow, rowCount, __values_length, __values_data, __foregrounds_length, __foregrounds_data, __backgrounds_length, __backgrounds_data, __icons_length, __icons_data));
+                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong, ulong, long, int, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[23](ThisPtr, requestId, generation, startRow, rowCount, __values_length, __values_data, __foregrounds_length, __foregrounds_data, __backgrounds_length, __backgrounds_data, __icons_length, __icons_data));
                 global::System.GC.KeepAlive(_obj);
             }
             finally
@@ -288,7 +302,7 @@ namespace ABI.VelocityGrid_Native
             MarshalString.Pinnable __message = new(message);
             fixed(void* ___message = __message)
             {
-                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong, ulong, IntPtr, int>**)ThisPtr)[20](ThisPtr, requestId, generation, MarshalString.GetAbi(ref __message)));
+                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong, ulong, IntPtr, int>**)ThisPtr)[24](ThisPtr, requestId, generation, MarshalString.GetAbi(ref __message)));
                 global::System.GC.KeepAlive(_obj);
             }
         }
@@ -314,7 +328,7 @@ namespace ABI.VelocityGrid_Native
                 (__widths_length, __widths_data) = MarshalBlittable<double>.GetAbiArray(__widths);
                 __alignments = MarshalBlittable<int>.CreateMarshalerArray(alignments);
                 (__alignments_length, __alignments_data) = MarshalBlittable<int>.GetAbiArray(__alignments);
-                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[21](ThisPtr, __headers_length, __headers_data, __widths_length, __widths_data, __alignments_length, __alignments_data));
+                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[25](ThisPtr, __headers_length, __headers_data, __widths_length, __widths_data, __alignments_length, __alignments_data));
                 global::System.GC.KeepAlive(_obj);
             }
             finally
@@ -329,7 +343,7 @@ namespace ABI.VelocityGrid_Native
         {
             var ThisPtr = _obj.ThisPtr;
 
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, int>**)ThisPtr)[26](ThisPtr, command));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, int>**)ThisPtr)[30](ThisPtr, command));
             global::System.GC.KeepAlive(_obj);
         }
 
@@ -337,7 +351,7 @@ namespace ABI.VelocityGrid_Native
         {
             var ThisPtr = _obj.ThisPtr;
 
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, long, int>**)ThisPtr)[27](ThisPtr, rowIndex));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, long, int>**)ThisPtr)[31](ThisPtr, rowIndex));
             global::System.GC.KeepAlive(_obj);
         }
 
@@ -345,7 +359,7 @@ namespace ABI.VelocityGrid_Native
         {
             var ThisPtr = _obj.ThisPtr;
 
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int>**)ThisPtr)[32](ThisPtr));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int>**)ThisPtr)[36](ThisPtr));
             global::System.GC.KeepAlive(_obj);
         }
 
@@ -385,7 +399,7 @@ namespace ABI.VelocityGrid_Native
                 (__backgrounds_length, __backgrounds_data) = MarshalBlittable<byte>.GetAbiArray(__backgrounds);
                 __icons = MarshalBlittable<byte>.CreateMarshalerArray(icons);
                 (__icons_length, __icons_data) = MarshalBlittable<byte>.GetAbiArray(__icons);
-                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[33](ThisPtr, __rowIndices_length, __rowIndices_data, __columnIndices_length, __columnIndices_data, __values_length, __values_data, __foregrounds_length, __foregrounds_data, __backgrounds_length, __backgrounds_data, __icons_length, __icons_data));
+                global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int, IntPtr, int>**)ThisPtr)[37](ThisPtr, __rowIndices_length, __rowIndices_data, __columnIndices_length, __columnIndices_data, __values_length, __values_data, __foregrounds_length, __foregrounds_data, __backgrounds_length, __backgrounds_data, __icons_length, __icons_data));
                 global::System.GC.KeepAlive(_obj);
             }
             finally
@@ -403,7 +417,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             ulong __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[29](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[33](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -413,7 +427,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             ulong __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[30](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[34](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -450,9 +464,26 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             ulong __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[28](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[32](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
+        }
+
+        internal static unsafe bool get_HasKeyboardFocus(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            byte __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, byte*, int>**)ThisPtr)[17](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval != 0;
+        }
+        internal static unsafe void set_HasKeyboardFocus(IObjectReference _obj, bool value)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, byte, int>**)ThisPtr)[18](ThisPtr, (byte)(value ? 1 : 0)));
+            global::System.GC.KeepAlive(_obj);
         }
 
         internal static unsafe ulong get_LastUpdateLatencyMicroseconds(IObjectReference _obj)
@@ -460,7 +491,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             ulong __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[37](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[41](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -480,7 +511,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             ulong __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[31](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[35](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -524,7 +555,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             int __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int*, int>**)ThisPtr)[23](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int*, int>**)ThisPtr)[27](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -534,7 +565,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             long __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, long*, int>**)ThisPtr)[22](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, long*, int>**)ThisPtr)[26](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -544,7 +575,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             ulong __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[34](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[38](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -554,7 +585,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             ulong __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[35](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[39](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -564,7 +595,7 @@ namespace ABI.VelocityGrid_Native
             var ThisPtr = _obj.ThisPtr;
 
             ulong __retval = default;
-            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[36](ThisPtr, &__retval));
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, ulong*, int>**)ThisPtr)[40](ThisPtr, &__retval));
             global::System.GC.KeepAlive(_obj);
             return __retval;
         }
@@ -586,6 +617,23 @@ namespace ABI.VelocityGrid_Native
             }
         }
 
+        internal static unsafe int get_VisualTheme(IObjectReference _obj)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            int __retval = default;
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int*, int>**)ThisPtr)[15](ThisPtr, &__retval));
+            global::System.GC.KeepAlive(_obj);
+            return __retval;
+        }
+        internal static unsafe void set_VisualTheme(IObjectReference _obj, int value)
+        {
+            var ThisPtr = _obj.ThisPtr;
+
+            global::WinRT.ExceptionHelpers.ThrowExceptionForHR((*(delegate* unmanaged[Stdcall]<IntPtr, int, int>**)ThisPtr)[16](ThisPtr, value));
+            global::System.GC.KeepAlive(_obj);
+        }
+
 
         private volatile static global::System.Runtime.CompilerServices.ConditionalWeakTable<object, global::ABI.WinRT.Interop.EventSource<global::VelocityGrid_Native.PageCanceledHandler>> _PageCanceled_;
         private static global::System.Runtime.CompilerServices.ConditionalWeakTable<object, global::ABI.WinRT.Interop.EventSource<global::VelocityGrid_Native.PageCanceledHandler>> MakePageCanceledTable()
@@ -604,7 +652,7 @@ namespace ABI.VelocityGrid_Native
             {
 
                 return 
-                new _EventSource_global__VelocityGrid_Native_PageCanceledHandler(_obj, 17);
+                new _EventSource_global__VelocityGrid_Native_PageCanceledHandler(_obj, 21);
             });
         }
 
@@ -625,7 +673,7 @@ namespace ABI.VelocityGrid_Native
             {
 
                 return 
-                new _EventSource_global__VelocityGrid_Native_PageRequestedHandler(_obj, 15);
+                new _EventSource_global__VelocityGrid_Native_PageRequestedHandler(_obj, 19);
             });
         }
 
@@ -646,7 +694,7 @@ namespace ABI.VelocityGrid_Native
             {
 
                 return 
-                new _EventSource_global__VelocityGrid_Native_SelectionChangedHandler(_obj, 24);
+                new _EventSource_global__VelocityGrid_Native_SelectionChangedHandler(_obj, 28);
             });
         }
 
@@ -656,13 +704,13 @@ namespace ABI.VelocityGrid_Native
             [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             get
             {
-                global::System.ReadOnlySpan<byte> data = new byte[] { 0xDA, 0x92, 0x44, 0x73, 0x67, 0x63, 0xED, 0x5C, 0xBF, 0xD7, 0x5C, 0xC9, 0x5B, 0x46, 0xF5, 0xB0 };
+                global::System.ReadOnlySpan<byte> data = new byte[] { 0x69, 0xEC, 0xAC, 0xBC, 0xA4, 0x83, 0xD1, 0x54, 0x80, 0x92, 0x4B, 0xD4, 0x42, 0x9A, 0x44, 0x24 };
                 return ref global::System.Runtime.CompilerServices.Unsafe.As<byte, global::System.Guid>(ref global::System.Runtime.InteropServices.MemoryMarshal.GetReference(data));
             }
         }
 
     }
-    [Guid("734492DA-6367-5CED-BFD7-5CC95B46F5B0")]
+    [Guid("BCACEC69-83A4-54D1-8092-4BD4429A4424")]
     internal interface IVelocityGrid : global::VelocityGrid_Native.IVelocityGrid
     {
     }

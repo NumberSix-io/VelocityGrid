@@ -1,9 +1,0 @@
-namespace VelocityGrid_Native
-{
-    [default_interface]
-    runtimeclass Class
-    {
-        Class();
-        Int32 MyProperty;
-    }
-}

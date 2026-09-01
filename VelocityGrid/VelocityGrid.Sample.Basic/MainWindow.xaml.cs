@@ -1,29 +1,15 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace VelocityGrid.Sample.Basic
 {
-    /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
-    /// </summary>
+    /// <summary>Interactive provider, streaming-update, and benchmark sample.</summary>
     public sealed partial class MainWindow : Window
     {
         private readonly VelocityGrid.Managed.SyntheticDataProvider _syntheticProvider = new(10_000_000);
@@ -33,7 +19,6 @@ namespace VelocityGrid.Sample.Basic
         private readonly Random _marketRandom = new(73);
         private readonly Dictionary<long, double> _marketPrices = new();
         private readonly Dictionary<(long Row, int Column), PendingFlash> _pendingFlashes = new();
-        private long _marketSequence;
         private int _marketTicks;
 
         public MainWindow()
@@ -63,7 +48,6 @@ namespace VelocityGrid.Sample.Basic
         private void StartMarket_Click(object sender, RoutedEventArgs e)
         {
             GridControl.ResetPerformanceMetrics();
-            _marketSequence = 0;
             _marketTicks = 0;
             _marketPrices.Clear();
             _pendingFlashes.Clear();
@@ -135,8 +119,9 @@ namespace VelocityGrid.Sample.Basic
                 };
                 var flashFormat = restingFormat with { Background = flashBackground };
                 updates[index] = new(row, column, value, flashFormat);
+                // The sample—not the grid—owns transient formatting policy. Replacing
+                // this entry prevents an older clear from overwriting a newer price.
                 _pendingFlashes[(row, column)] = new(value, restingFormat, DateTimeOffset.UtcNow.AddMilliseconds(500));
-                ++_marketSequence;
             }
             GridControl.ApplyUpdates(updates);
             if (++_marketTicks % 60 == 0) ShowMarketMetrics();

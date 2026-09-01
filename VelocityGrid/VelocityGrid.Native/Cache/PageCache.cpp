@@ -31,6 +31,8 @@ namespace velocity_grid
 
     std::optional<std::reference_wrapper<page const>> page_cache::find_row(std::int64_t const row)
     {
+        // Capacity is deliberately tiny (currently eight), so this bounded scan is
+        // simpler than maintaining a second interval index and remains predictable.
         for (auto item = m_pages.begin(); item != m_pages.end(); ++item)
         {
             if (item->second.value.contains(row))

@@ -28,7 +28,9 @@
             <TextBlock Grid.Column="1" x:Name="BenchmarkStatus" Text="Ready" TextWrapping="Wrap" FontFamily="Consolas" />
         </Grid>
         <Border Grid.Row="2" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" CornerRadius="6">
-            <velocity:VelocityGridControl x:Name="GridControl" />
+            <velocity:VelocityGridControl x:Name="GridControl"
+                                          AutomationProperties.Name="Live market data grid"
+                                          AutomationProperties.HelpText="Read-only grid containing ten million virtual rows." />
         </Border>
     </Grid>
 </Window>

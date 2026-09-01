@@ -132,5 +132,28 @@ namespace VelocityGrid.Managed.Tests
             Assert.AreEqual(page.Values.Length, page.Formats.Length);
         }
 
+        [UITestMethod]
+        public void GridExposesDataGridAutomationIdentity()
+        {
+            var grid = new VelocityGrid.Managed.VelocityGridControl();
+            var peer = Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer.CreatePeerForElement(grid);
+
+            Assert.IsNotNull(peer);
+            Assert.AreEqual(Microsoft.UI.Xaml.Automation.Peers.AutomationControlType.DataGrid,
+                peer.GetAutomationControlType());
+            Assert.AreEqual("VelocityGrid", peer.GetName());
+        }
+
+        [TestMethod]
+        public void DataErrorPreservesRangeAndException()
+        {
+            var exception = new InvalidOperationException("provider failed");
+            var error = new VelocityGrid.Managed.VelocityGridDataErrorEventArgs(
+                new VelocityGrid.Managed.VelocityGridRange(128, 64), exception);
+
+            Assert.AreEqual(128L, error.RequestedRange.StartRow);
+            Assert.AreSame(exception, error.Exception);
+        }
+
     }
 }

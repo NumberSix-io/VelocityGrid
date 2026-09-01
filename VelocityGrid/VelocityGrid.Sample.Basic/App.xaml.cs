@@ -16,9 +16,6 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace VelocityGrid.Sample.Basic
 {
     /// <summary>
@@ -29,8 +26,7 @@ namespace VelocityGrid.Sample.Basic
         private Window? _window;
 
         /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
+        /// Initializes the packaged WinUI application.
         /// </summary>
         public App()
         {

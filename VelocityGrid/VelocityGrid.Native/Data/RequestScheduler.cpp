@@ -41,6 +41,8 @@ namespace velocity_grid
             ++m_state->metrics.requested;
         }
 
+        // The worker captures shared state, never `this`. Destruction can therefore
+        // set stopping/cancellation without racing a callback into a freed control.
         auto state = m_state;
         std::thread([state, cancellation, id, generation, start_row, row_count]
         {

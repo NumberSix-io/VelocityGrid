@@ -4,12 +4,16 @@ using System.Threading.Tasks;
 
 namespace VelocityGrid.Managed;
 
+/// <summary>A contiguous logical row range.</summary>
 public readonly record struct VelocityGridRange(long StartRow, int RowCount);
 
+/// <summary>Correlation metadata for one native viewport request.</summary>
 public readonly record struct VelocityGridFetchContext(ulong RequestId, ulong Generation);
 
+/// <summary>A display-ready row-major page and optional compact cell formatting.</summary>
 public sealed class VelocityGridPage
 {
+    /// <summary>Creates a validated page containing exactly ten source values per row.</summary>
     public VelocityGridPage(long startRow, int rowCount, string[] values, VelocityGridCellFormat[]? formats = null)
     {
         ArgumentNullException.ThrowIfNull(values);
@@ -31,6 +35,7 @@ public sealed class VelocityGridPage
     public VelocityGridCellFormat[] Formats { get; }
 }
 
+/// <summary>Supplies cancellable pages for the grid's current viewport and prefetch window.</summary>
 public interface IVelocityGridDataProvider
 {
     long RowCount { get; }
@@ -41,6 +46,7 @@ public interface IVelocityGridDataProvider
         CancellationToken cancellationToken);
 }
 
+/// <summary>Deterministic in-memory provider used by samples, tests, and benchmarks.</summary>
 public sealed class SyntheticDataProvider(long rowCount = 10_000_000) : IVelocityGridDataProvider
 {
     public long RowCount { get; } = rowCount >= 0 ? rowCount : throw new ArgumentOutOfRangeException(nameof(rowCount));
@@ -74,6 +80,7 @@ public sealed class SyntheticDataProvider(long rowCount = 10_000_000) : IVelocit
     }
 }
 
+/// <summary>Adds cancellable latency to another provider for loading/stale-request testing.</summary>
 public sealed class SimulatedRemoteDataProvider(IVelocityGridDataProvider inner, TimeSpan latency)
     : IVelocityGridDataProvider
 {

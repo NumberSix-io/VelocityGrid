@@ -79,6 +79,24 @@ namespace winrt::VelocityGrid_Native::implementation
     std::int64_t VelocityGrid::LastVisibleRow() const noexcept { return m_viewport.last_row; }
     UIElement VelocityGrid::View() const noexcept { return m_root; }
     bool VelocityGrid::ExternalProviderEnabled() const noexcept { return m_external_provider_enabled; }
+    std::int32_t VelocityGrid::VisualTheme() const noexcept { return m_visual_theme; }
+
+    void VelocityGrid::VisualTheme(std::int32_t const value)
+    {
+        auto const theme = (std::clamp)(value, 0, 2);
+        if (theme == m_visual_theme) return;
+        m_visual_theme = theme;
+        update_theme_resources();
+        request_render();
+    }
+
+    bool VelocityGrid::HasKeyboardFocus() const noexcept { return m_has_focus; }
+    void VelocityGrid::HasKeyboardFocus(bool const value)
+    {
+        if (m_has_focus == value) return;
+        m_has_focus = value;
+        request_render();
+    }
 
     void VelocityGrid::ExternalProviderEnabled(bool const value)
     {
@@ -461,6 +479,69 @@ namespace winrt::VelocityGrid_Native::implementation
         }
     }
 
+    void VelocityGrid::update_theme_resources()
+    {
+        if (!m_line_brush) return;
+        if (m_visual_theme == 2)
+        {
+            m_line_brush->SetColor(D2D1::ColorF(D2D1::ColorF::White));
+            m_text_brush->SetColor(D2D1::ColorF(D2D1::ColorF::White));
+            m_header_brush->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
+            m_selection_brush->SetColor(D2D1::ColorF(D2D1::ColorF::Yellow));
+            m_focus_brush->SetColor(D2D1::ColorF(D2D1::ColorF::White));
+        }
+        else if (m_visual_theme == 1)
+        {
+            m_line_brush->SetColor(D2D1::ColorF(0.27f, 0.30f, 0.35f));
+            m_text_brush->SetColor(D2D1::ColorF(0.92f, 0.94f, 0.97f));
+            m_header_brush->SetColor(D2D1::ColorF(0.13f, 0.15f, 0.19f));
+            m_selection_brush->SetColor(D2D1::ColorF(0.13f, 0.30f, 0.52f));
+            m_focus_brush->SetColor(D2D1::ColorF(0.45f, 0.70f, 1.0f));
+        }
+        else
+        {
+            m_line_brush->SetColor(D2D1::ColorF(0.78f, 0.81f, 0.85f));
+            m_text_brush->SetColor(D2D1::ColorF(0.10f, 0.13f, 0.18f));
+            m_header_brush->SetColor(D2D1::ColorF(0.88f, 0.91f, 0.95f));
+            m_selection_brush->SetColor(D2D1::ColorF(0.78f, 0.87f, 0.98f));
+            m_focus_brush->SetColor(D2D1::ColorF(0.10f, 0.35f, 0.72f));
+        }
+        // Keep theme changes inside the Direct2D renderer. Mutating XAML controls
+        // from this native resource path can run while the projected control is
+        // still being constructed and causes Microsoft.UI.Xaml to fail fast.
+    }
+
+    void VelocityGrid::recover_device_resources() noexcept
+    {
+        try
+        {
+            if (m_surface)
+                m_surface.as<ISwapChainPanelNative>()->SetSwapChain(nullptr);
+            if (m_d2d_context) m_d2d_context->SetTarget(nullptr);
+            m_target_bitmap.Reset();
+            m_cell_format_brush.Reset();
+            m_focus_brush.Reset();
+            m_selection_brush.Reset();
+            m_header_brush.Reset();
+            m_text_brush.Reset();
+            m_line_brush.Reset();
+            for (auto& format : m_text_formats) format.Reset();
+            m_dwrite_factory.Reset();
+            m_swap_chain.Reset();
+            m_d2d_context.Reset();
+            m_d2d_device.Reset();
+            m_d2d_factory.Reset();
+            m_d3d_context.Reset();
+            m_d3d_device.Reset();
+            create_device_resources();
+            create_size_dependent_resources(m_width, m_surface_height);
+        }
+        catch (...)
+        {
+            m_last_provider_error = L"Graphics device recovery failed";
+        }
+    }
+
     void VelocityGrid::create_size_dependent_resources(double const width, double const height)
     {
         if (width < 1.0 || height < 1.0) return;
@@ -516,7 +597,8 @@ namespace winrt::VelocityGrid_Native::implementation
             if (m_render_timer) m_render_timer.Stop();
         }
         m_d2d_context->BeginDraw();
-        m_d2d_context->Clear(D2D1::ColorF(0.96f, 0.97f, 0.98f));
+        m_d2d_context->Clear(m_visual_theme == 0
+            ? D2D1::ColorF(0.96f, 0.97f, 0.98f) : D2D1::ColorF(0.06f, 0.07f, 0.09f));
 
         struct visible_column
         {
@@ -576,7 +658,7 @@ namespace winrt::VelocityGrid_Native::implementation
                     cell_index = static_cast<std::size_t>((row - page->start_row) * 10 + layout.index);
                     if (cell_index < page->formats.size()) format = page->formats[cell_index];
                 }
-                if (format.background != 0)
+                if (format.background != 0 && m_visual_theme != 2)
                 {
                     auto colour = background_colour(format.background);
                     m_cell_format_brush->SetColor(colour);
@@ -594,7 +676,10 @@ namespace winrt::VelocityGrid_Native::implementation
                 {
                     value = cached ? std::format(L"R{}  C{}", row, layout.index + 1) : std::format(L"Loading row {}", row);
                 }
-                m_cell_format_brush->SetColor(foreground_colour(format.foreground));
+                auto const selected = row == m_selected_row && static_cast<std::int32_t>(layout.index) == m_selected_column;
+                m_cell_format_brush->SetColor(m_visual_theme == 2
+                    ? D2D1::ColorF(selected ? D2D1::ColorF::Black : D2D1::ColorF::White)
+                    : foreground_colour(format.foreground));
                 auto text_left = left + 7.0f;
                 if (format.icon != 0)
                 {
@@ -622,7 +707,13 @@ namespace winrt::VelocityGrid_Native::implementation
             return;
         }
         check_hresult(result);
-        check_hresult(m_swap_chain->Present(1, 0));
+        auto const present_result = m_swap_chain->Present(1, 0);
+        if (present_result == DXGI_ERROR_DEVICE_REMOVED || present_result == DXGI_ERROR_DEVICE_RESET)
+        {
+            recover_device_resources();
+            return;
+        }
+        check_hresult(present_result);
         ++m_frame_count;
         ++m_fps_frame_count;
         if (m_update_render_pending)
@@ -637,6 +728,8 @@ namespace winrt::VelocityGrid_Native::implementation
 
     void VelocityGrid::request_render()
     {
+        // A one-shot timer collapses page completions and update batches arriving in
+        // the same display interval into one synchronized swap-chain presentation.
         if (m_render_pending || m_shutdown) return;
         m_render_pending = true;
         m_render_timer.Start();
@@ -678,6 +771,8 @@ namespace winrt::VelocityGrid_Native::implementation
             m_anchor_page = anchor;
         }
 
+        // Bias the bounded prefetch window toward motion while retaining one page
+        // behind for small reversals. Changing these constants requires measurement.
         auto const scrolling_down = m_viewport.first_row >= m_previous_first_row;
         m_previous_first_row = m_viewport.first_row;
         auto const behind = scrolling_down ? 1 : 2;
@@ -694,6 +789,8 @@ namespace winrt::VelocityGrid_Native::implementation
 
         if (m_external_provider_enabled)
         {
+            // Erase before invoking managed cancellation: an event handler may complete
+            // synchronously/re-enter and must not observe the request as still active.
             for (auto request = m_external_requests.begin(); request != m_external_requests.end();)
             {
                 if (request->second.generation != m_generation || !m_wanted_pages.contains(request->second.start_row))
@@ -715,6 +812,7 @@ namespace winrt::VelocityGrid_Native::implementation
                 auto const id = m_next_external_request_id++;
                 m_external_requests.emplace(id, external_request{ start, m_generation });
                 ++m_external_requested;
+                // The event is deliberately page-grained; no cell lookup ever calls managed code.
                 m_page_requested(start, count, id, m_generation);
             }
             return;

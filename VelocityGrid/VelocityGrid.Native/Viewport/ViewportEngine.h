@@ -4,6 +4,7 @@
 
 namespace velocity_grid
 {
+    // Compact result consumed directly by scrolling, request policy, and drawing.
     struct viewport_range
     {
         std::int64_t first_row{};
@@ -26,3 +27,6 @@ namespace velocity_grid
         double viewport_height,
         double requested_offset) noexcept;
 }
+    // Uses long-double extent arithmetic so very large logical row counts cannot
+    // overflow merely because their equivalent pixel extent is enormous.
+    // Returns every row intersecting the viewport, including partial edge rows.
