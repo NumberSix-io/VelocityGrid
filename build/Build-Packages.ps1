@@ -5,7 +5,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 $solutionDirectory = Join-Path $PSScriptRoot "..\VelocityGrid"
-$consumerPackageCache = Join-Path $solutionDirectory "artifacts\package-cache-$($Version.Replace('.', '_').Replace('-', '_'))"
+$artifactsDirectory = [IO.Path]::GetFullPath((Join-Path $solutionDirectory "artifacts"))
+$consumerPackageCache = [IO.Path]::GetFullPath((Join-Path $artifactsDirectory "package-cache-$($Version.Replace('.', '_').Replace('-', '_'))"))
+if (-not $consumerPackageCache.StartsWith($artifactsDirectory, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "The consumer package cache must remain inside the artifacts directory."
+}
+if (Test-Path -LiteralPath $consumerPackageCache) {
+    Remove-Item -LiteralPath $consumerPackageCache -Recurse -Force
+}
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\amd64\MSBuild.exe | Select-Object -First 1
 if (-not $msbuild) { throw "Visual Studio MSBuild was not found." }

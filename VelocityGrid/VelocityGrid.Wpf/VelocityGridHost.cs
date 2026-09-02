@@ -46,6 +46,14 @@ public sealed class VelocityGridHost : HwndHost
     /// <summary>Raised after the hosted WinUI grid has been constructed.</summary>
     public event EventHandler? GridReady;
 
+    /// <summary>Updates the hosted grid's logical extent and cache state.</summary>
+    public void NotifyDataChanged(long newRowCount, VelocityGridDataChangeKind changeKind)
+    {
+        if (Grid is null)
+            throw new InvalidOperationException("The grid is available after the host raises GridReady.");
+        Grid.NotifyDataChanged(newRowCount, changeKind);
+    }
+
     /// <inheritdoc />
     protected override HandleRef BuildWindowCore(HandleRef hwndParent)
     {

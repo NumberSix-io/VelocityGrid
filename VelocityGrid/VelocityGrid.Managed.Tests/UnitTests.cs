@@ -186,5 +186,31 @@ namespace VelocityGrid.Managed.Tests
             Assert.AreEqual((byte)28, (byte)VelocityGrid.Managed.VelocityGridIcon.Edit);
         }
 
+        [UITestMethod]
+        public void DataChangeModesUpdateAndValidateLogicalExtent()
+        {
+            var grid = new VelocityGrid.Managed.VelocityGridControl { RowCount = 100 };
+
+            grid.NotifyDataChanged(125, VelocityGrid.Managed.VelocityGridDataChangeKind.Append);
+            Assert.AreEqual(125, grid.RowCount);
+            grid.NotifyDataChanged(80, VelocityGrid.Managed.VelocityGridDataChangeKind.TrimEnd);
+            Assert.AreEqual(80, grid.RowCount);
+            grid.NotifyDataChanged(80, VelocityGrid.Managed.VelocityGridDataChangeKind.Reset);
+            Assert.AreEqual(80, grid.RowCount);
+
+            Assert.ThrowsExactly<ArgumentException>(() =>
+                grid.NotifyDataChanged(79, VelocityGrid.Managed.VelocityGridDataChangeKind.Append));
+            Assert.ThrowsExactly<ArgumentException>(() =>
+                grid.NotifyDataChanged(81, VelocityGrid.Managed.VelocityGridDataChangeKind.TrimEnd));
+        }
+
+        [TestMethod]
+        public void DataChangeKindAbiValuesRemainStable()
+        {
+            Assert.AreEqual(0, (int)VelocityGrid.Managed.VelocityGridDataChangeKind.Append);
+            Assert.AreEqual(1, (int)VelocityGrid.Managed.VelocityGridDataChangeKind.TrimEnd);
+            Assert.AreEqual(2, (int)VelocityGrid.Managed.VelocityGridDataChangeKind.Reset);
+        }
+
     }
 }

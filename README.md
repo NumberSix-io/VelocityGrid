@@ -124,6 +124,14 @@ TradesGrid.ApplyUpdates(new[]
 
 The grid applies exactly the visual state supplied by the caller. For a temporary background, send the coloured update and later send another update with `VelocityGridColor.None` as the background. Colours and icons have no semantic meaning to the grid; it does not infer direction or run formatting timers.
 
+When the dataset extent or ordering changes, update the provider first and notify the grid explicitly:
+
+```csharp
+TradesGrid.NotifyDataChanged(provider.RowCount, VelocityGridDataChangeKind.Append);  // tail growth
+TradesGrid.NotifyDataChanged(provider.RowCount, VelocityGridDataChangeKind.TrimEnd); // tail removal
+TradesGrid.NotifyDataChanged(provider.RowCount, VelocityGridDataChangeKind.Reset);   // reorder/filter/arbitrary changes
+```
+
 See [API/configuration](docs/api-reference.md), [providers](docs/provider-guide.md), [formatting](docs/cell-formatting.md), and [streaming updates](docs/streaming-updates.md) for full contracts and examples.
 
 ## Use from WPF

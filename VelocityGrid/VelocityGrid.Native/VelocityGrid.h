@@ -54,6 +54,7 @@ namespace winrt::VelocityGrid_Native::implementation
         void SelectionChanged(winrt::event_token const& token) noexcept;
         void NavigateSelection(std::int32_t command);
         void ScrollToRow(std::int64_t rowIndex);
+        void NotifyDataChanged(std::int64_t newRowCount, VelocityGrid_Native::DataChangeKind changeKind);
         std::uint64_t FrameCount() const noexcept;
         std::uint64_t CacheHits() const noexcept;
         std::uint64_t CacheMisses() const noexcept;

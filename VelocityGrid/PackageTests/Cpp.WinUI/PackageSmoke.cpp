@@ -3,5 +3,6 @@
 void velocity_grid_package_compile_smoke()
 {
     winrt::VelocityGrid_Native::VelocityGrid grid{ nullptr };
+    if (grid) grid.NotifyDataChanged(1'100, winrt::VelocityGrid_Native::DataChangeKind::Append);
     (void)grid;
 }

@@ -68,6 +68,22 @@ namespace VelocityGrid_Native_Tests
             Assert::AreEqual<std::uint8_t>(1, cached->get().formats[14].foreground);
         }
 
+        TEST_METHOD(PageCacheCanInvalidateChangedDatasetTail)
+        {
+            velocity_grid::page_cache cache(4);
+            cache.insert({ 0, 128, 10 });
+            cache.insert({ 128, 72, 10 });
+
+            cache.erase_page(128);
+            Assert::IsTrue(cache.contains_page(0));
+            Assert::IsFalse(cache.contains_page(128));
+
+            cache.insert({ 128, 128, 10 });
+            cache.erase_after(180);
+            Assert::IsTrue(cache.contains_page(0));
+            Assert::IsFalse(cache.contains_page(128));
+        }
+
         TEST_METHOD(SchedulerPreservesGenerationOnCompletion)
         {
             velocity_grid::request_scheduler scheduler;

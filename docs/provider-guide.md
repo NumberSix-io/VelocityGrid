@@ -33,6 +33,19 @@ Assign it to `DataProvider`. The grid adopts its `RowCount`; assignment before l
 
 The provider remains authoritative. Uncached streaming changes are ignored, so later fetches must contain current state.
 
+## Changing the row count
+
+Update the provider's underlying snapshot/count first, then notify the grid on its UI thread:
+
+```csharp
+provider.ApplyNewSnapshot(records);
+grid.NotifyDataChanged(provider.RowCount, VelocityGridDataChangeKind.Reset);
+```
+
+Use `Append` when new records are added strictly after every existing row, and `TrimEnd` when records are removed strictly from the end. These modes preserve unaffected cache entries. Use `Reset` whenever sorting, filtering, insertion, deletion, or replacement can change the meaning of an existing row index—even when `RowCount` stays the same.
+
+`IVelocityGridDataProvider.RowCount` is a getter and has no notification event. Changing the provider alone does not update the grid. This deliberate explicit notification keeps threading, batching, and invalidation under the host application's control.
+
 ## Cancellation and stale work
 
 The adapter creates a token per page request. Generation changes and pages leaving the predictive window cancel it. Pass it to database/HTTP/delay operations and do not swallow `OperationCanceledException`.
@@ -47,7 +60,7 @@ Non-cancellation exceptions are caught. The control calls native `FailPage`, rai
 
 ## Sorting and filtering
 
-Perform them at the source for large/remote datasets. Change provider query state and logical ordering rather than materializing all rows locally. A public refresh/sort descriptor contract is a post-1.0 candidate.
+Perform them at the source for large/remote datasets. Change provider query state and logical ordering rather than materializing all rows locally, then notify the grid with `Reset`.
 
 `SyntheticDataProvider` supplies immediate deterministic data. `SimulatedRemoteDataProvider` adds cancellable latency. The basic sample demonstrates the complete integration.
 

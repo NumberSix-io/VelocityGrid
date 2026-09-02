@@ -23,6 +23,8 @@ namespace velocity_grid
         [[nodiscard]] bool update_cell(std::int64_t row, std::int32_t column, std::wstring value,
             cell_format format);
         [[nodiscard]] bool contains_page(std::int64_t start_row) const noexcept;
+        void erase_page(std::int64_t start_row) noexcept;
+        void erase_after(std::int64_t row_count) noexcept;
         void clear() noexcept;
         [[nodiscard]] std::size_t size() const noexcept;
         [[nodiscard]] std::size_t capacity() const noexcept;

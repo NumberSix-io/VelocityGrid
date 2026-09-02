@@ -67,6 +67,19 @@ public sealed class VelocityGridControl : UserControl
     /// <summary>Jumps directly to a logical row; native code clamps the value.</summary>
     public void ScrollToRow(long rowIndex) => _nativeGrid.ScrollToRow(rowIndex);
 
+    /// <summary>Updates the logical extent using explicit cache-invalidation semantics.</summary>
+    public void NotifyDataChanged(long newRowCount, VelocityGridDataChangeKind changeKind)
+    {
+        if (newRowCount < 0) throw new ArgumentOutOfRangeException(nameof(newRowCount));
+        if (!Enum.IsDefined(changeKind)) throw new ArgumentOutOfRangeException(nameof(changeKind));
+        if (changeKind == VelocityGridDataChangeKind.Append && newRowCount < RowCount)
+            throw new ArgumentException("Append cannot reduce the row count.", nameof(newRowCount));
+        if (changeKind == VelocityGridDataChangeKind.TrimEnd && newRowCount > RowCount)
+            throw new ArgumentException("TrimEnd cannot increase the row count.", nameof(newRowCount));
+
+        _nativeGrid.NotifyDataChanged(newRowCount, (DataChangeKind)changeKind);
+    }
+
     /// <summary>Applies a caller-owned batch to resident native cache entries.</summary>
     public void ApplyUpdates(IEnumerable<VelocityGridCellUpdate> updates)
     {

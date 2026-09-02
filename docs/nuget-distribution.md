@@ -52,6 +52,13 @@ window.Content(grid.View());
 
 The ABI deliberately uses WinRT-compatible primitives and parallel arrays. C++ callers can use it directly without loading the managed facade.
 
+Dynamic datasets use the same explicit native contract:
+
+```cpp
+grid.NotifyDataChanged(newRowCount, winrt::VelocityGrid_Native::DataChangeKind::Append);
+// Use TrimEnd for tail removal, or Reset when existing row indices may mean different data.
+```
+
 ## Build local packages
 
 From repository root in PowerShell:

@@ -13,6 +13,7 @@ First public preview.
 - WPF XAML Island host with automatic Windows App SDK initialization.
 - Caller-controlled foreground, background, and built-in icon formatting.
 - Batched live updates, selection, keyboard navigation, accessibility, and performance metrics.
+- Explicit append, end-trim, and full-reset notifications for changing datasets.
 - x86, x64, and ARM64 native runtime assets.
 - Package-only C# WinUI, WPF, and C++/WinRT validation consumers.
 

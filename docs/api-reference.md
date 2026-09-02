@@ -8,6 +8,7 @@ This is the supported C# surface. The WinRT API is an implementation boundary un
 
 - `DataProvider`: assigning a provider cancels current requests, adopts `RowCount`, and requests the loaded viewport.
 - `RowCount`: 64-bit logical size; normally provider-owned.
+- `NotifyDataChanged(long, VelocityGridDataChangeKind)`: changes the extent with explicit append, end-trim, or full-reset cache semantics.
 - `RowHeight`: fixed DIPs for all rows. Native validation accepts finite values of at least 8.
 - `Columns`: immutable snapshot of configured visible columns.
 - `SetColumns(...)`: one or more columns mapped to the same zero-based source slots in each row payload. Columns outside the viewport are not rendered.
@@ -24,6 +25,14 @@ This is the supported C# surface. The WinRT API is an implementation boundary un
 
 - `ApplyUpdates(...)`: snapshots and transfers one batch. Empty batches are ignored. Only resident cached cells change.
 - The caller owns transient visuals and sends later updates to clear/change formatting.
+
+### Changing datasets
+
+- `Append`: requires a count greater than or equal to the current count. Full cached pages and selection are retained; a formerly partial final page is reloaded.
+- `TrimEnd`: requires a count less than or equal to the current count. Pages crossing the new end are discarded, scrolling is clamped, and selection beyond the end moves to the new final row.
+- `Reset`: accepts any non-negative count, cancels outstanding requests, clears every cached page and selection, and reloads the current clamped viewport. Use it for sorting, filtering, replacement, and insertions/deletions that shift row indices.
+
+Assigning `RowCount` directly automatically uses `Append` or `TrimEnd`. Use `NotifyDataChanged(..., Reset)` when the count is unchanged but row content or ordering has changed.
 
 ### Diagnostics and errors
 

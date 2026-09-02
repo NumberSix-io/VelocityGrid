@@ -1,5 +1,12 @@
 namespace VelocityGrid_Native
 {
+    enum DataChangeKind
+    {
+        Append = 0,
+        TrimEnd = 1,
+        Reset = 2
+    };
+
     delegate void PageRequestedHandler(Int64 startRow, Int32 rowCount, UInt64 requestId, UInt64 generation);
     delegate void PageCanceledHandler(UInt64 requestId);
     delegate void SelectionChangedHandler(Int64 rowIndex, Int32 columnIndex);
@@ -27,6 +34,7 @@ namespace VelocityGrid_Native
         event SelectionChangedHandler SelectionChanged;
         void NavigateSelection(Int32 command);
         void ScrollToRow(Int64 rowIndex);
+        void NotifyDataChanged(Int64 newRowCount, DataChangeKind changeKind);
         UInt64 FrameCount{ get; };
         UInt64 CacheHits{ get; };
         UInt64 CacheMisses{ get; };

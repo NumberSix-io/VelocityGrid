@@ -24,6 +24,8 @@ Use a concrete Windows architecture: `x64`, `x86`, or `ARM64`.
 
 Configure columns and supply pages through `IVelocityGridDataProvider`. The managed package installs the correct native runtime transitively.
 
+For changing datasets, call `NotifyDataChanged` with `Append`, `TrimEnd`, or `Reset`; the caller remains responsible for updating its provider snapshot before notifying the grid.
+
 ## WPF
 
 ```xml

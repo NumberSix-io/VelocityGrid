@@ -69,6 +69,31 @@ namespace velocity_grid
         return m_pages.contains(start_row);
     }
 
+    void page_cache::erase_page(std::int64_t const start_row) noexcept
+    {
+        auto const item = m_pages.find(start_row);
+        if (item == m_pages.end()) return;
+        m_recency.erase(item->second.recency);
+        m_pages.erase(item);
+    }
+
+    void page_cache::erase_after(std::int64_t const row_count) noexcept
+    {
+        for (auto item = m_pages.begin(); item != m_pages.end();)
+        {
+            auto const end_row = item->second.value.start_row + item->second.value.row_count;
+            if (item->second.value.start_row >= row_count || end_row > row_count)
+            {
+                m_recency.erase(item->second.recency);
+                item = m_pages.erase(item);
+            }
+            else
+            {
+                ++item;
+            }
+        }
+    }
+
     void page_cache::clear() noexcept
     {
         m_pages.clear();

@@ -4,9 +4,14 @@ namespace VelocityGrid.PackageTests.CSharp;
 
 public static class PackageSmoke
 {
-    public static VelocityGridControl Create() => new()
+    public static VelocityGridControl Create()
     {
-        DataProvider = new SyntheticDataProvider(1_000),
-        RowHeight = 24
-    };
+        var grid = new VelocityGridControl
+        {
+            DataProvider = new SyntheticDataProvider(1_000),
+            RowHeight = 24
+        };
+        grid.NotifyDataChanged(1_100, VelocityGridDataChangeKind.Append);
+        return grid;
+    }
 }

@@ -238,6 +238,67 @@ namespace winrt::VelocityGrid_Native::implementation
         if (previous_value == m_scroll_offset) update_viewport();
     }
 
+    void VelocityGrid::NotifyDataChanged(std::int64_t const new_row_count,
+        VelocityGrid_Native::DataChangeKind const change_kind)
+    {
+        if (new_row_count < 0) throw hresult_invalid_argument(L"Row count cannot be negative.");
+        if (change_kind != VelocityGrid_Native::DataChangeKind::Append &&
+            change_kind != VelocityGrid_Native::DataChangeKind::TrimEnd &&
+            change_kind != VelocityGrid_Native::DataChangeKind::Reset)
+            throw hresult_invalid_argument(L"Unknown data change kind.");
+        if (change_kind == VelocityGrid_Native::DataChangeKind::Append && new_row_count < m_row_count)
+            throw hresult_invalid_argument(L"Append cannot reduce the row count.");
+        if (change_kind == VelocityGrid_Native::DataChangeKind::TrimEnd && new_row_count > m_row_count)
+            throw hresult_invalid_argument(L"TrimEnd cannot increase the row count.");
+
+        auto const old_row_count = m_row_count;
+        if (change_kind != VelocityGrid_Native::DataChangeKind::Reset && new_row_count == old_row_count) return;
+
+        // Completions issued against the old extent are invalid after this point.
+        for (auto const& [id, _] : m_external_requests) m_page_canceled(id);
+        m_external_requests.clear();
+        ++m_generation;
+        m_anchor_page = -1;
+        m_last_provider_error = {};
+
+        constexpr std::int64_t page_size = 128;
+        switch (change_kind)
+        {
+        case VelocityGrid_Native::DataChangeKind::Append:
+            // Reload a formerly partial final page because it may now include new rows.
+            if (old_row_count > 0 && old_row_count % page_size != 0)
+                m_cache.erase_page((old_row_count / page_size) * page_size);
+            break;
+        case VelocityGrid_Native::DataChangeKind::TrimEnd:
+            m_cache.erase_after(new_row_count);
+            break;
+        case VelocityGrid_Native::DataChangeKind::Reset:
+            m_cache.clear();
+            break;
+        default:
+            throw hresult_invalid_argument(L"Unknown data change kind.");
+        }
+
+        m_row_count = new_row_count;
+        auto selection_changed = false;
+        if (change_kind == VelocityGrid_Native::DataChangeKind::Reset)
+        {
+            selection_changed = m_selected_row != -1 || m_selected_column != -1;
+            m_selected_row = -1;
+            m_selected_column = -1;
+        }
+        else if (m_selected_row >= new_row_count)
+        {
+            m_selected_row = new_row_count > 0 ? new_row_count - 1 : -1;
+            if (new_row_count == 0) m_selected_column = -1;
+            selection_changed = true;
+        }
+
+        update_scrollbars();
+        update_viewport();
+        if (selection_changed) m_selection_changed(m_selected_row, m_selected_column);
+    }
+
     std::uint64_t VelocityGrid::FrameCount() const noexcept { return m_frame_count; }
     std::uint64_t VelocityGrid::CacheHits() const noexcept { return m_cache_hits; }
     std::uint64_t VelocityGrid::CacheMisses() const noexcept { return m_cache_misses; }
@@ -346,9 +407,11 @@ namespace winrt::VelocityGrid_Native::implementation
 
     void VelocityGrid::RowCount(std::int64_t const value)
     {
-        m_row_count = (std::max<std::int64_t>)(0, value);
-        update_scrollbars();
-        update_viewport();
+        auto const new_count = (std::max<std::int64_t>)(0, value);
+        if (new_count == m_row_count) return;
+        NotifyDataChanged(new_count, new_count > m_row_count
+            ? VelocityGrid_Native::DataChangeKind::Append
+            : VelocityGrid_Native::DataChangeKind::TrimEnd);
     }
 
     void VelocityGrid::RowHeight(double const value)
