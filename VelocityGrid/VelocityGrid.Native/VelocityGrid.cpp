@@ -241,6 +241,12 @@ namespace winrt::VelocityGrid_Native::implementation
     void VelocityGrid::NotifyDataChanged(std::int64_t const new_row_count,
         VelocityGrid_Native::DataChangeKind const change_kind)
     {
+        NotifyDataChangedWithOptions(new_row_count, change_kind, false);
+    }
+
+    void VelocityGrid::NotifyDataChangedWithOptions(std::int64_t const new_row_count,
+        VelocityGrid_Native::DataChangeKind const change_kind, bool const reset_scroll_position)
+    {
         if (new_row_count < 0) throw hresult_invalid_argument(L"Row count cannot be negative.");
         if (change_kind != VelocityGrid_Native::DataChangeKind::Append &&
             change_kind != VelocityGrid_Native::DataChangeKind::TrimEnd &&
@@ -280,6 +286,7 @@ namespace winrt::VelocityGrid_Native::implementation
         }
 
         m_row_count = new_row_count;
+        if (reset_scroll_position) m_scroll_offset = 0.0;
         auto selection_changed = false;
         if (change_kind == VelocityGrid_Native::DataChangeKind::Reset)
         {
@@ -297,6 +304,22 @@ namespace winrt::VelocityGrid_Native::implementation
         update_scrollbars();
         update_viewport();
         if (selection_changed) m_selection_changed(m_selected_row, m_selected_column);
+    }
+
+    void VelocityGrid::InvalidateRows(std::int64_t const start_row, std::int64_t const row_count)
+    {
+        if (start_row < 0 || row_count <= 0 || start_row >= m_row_count || row_count > m_row_count - start_row)
+            throw hresult_invalid_argument(L"The invalidation range must be within the current dataset.");
+
+        // Advancing the generation rejects every old completion. Cached pages that
+        // cannot intersect the changed rows remain available.
+        for (auto const& [id, _] : m_external_requests) m_page_canceled(id);
+        m_external_requests.clear();
+        ++m_generation;
+        m_anchor_page = -1;
+        m_last_provider_error = {};
+        m_cache.erase_range(start_row, row_count);
+        update_viewport();
     }
 
     std::uint64_t VelocityGrid::FrameCount() const noexcept { return m_frame_count; }

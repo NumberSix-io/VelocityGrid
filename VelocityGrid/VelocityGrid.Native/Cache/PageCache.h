@@ -25,6 +25,7 @@ namespace velocity_grid
         [[nodiscard]] bool contains_page(std::int64_t start_row) const noexcept;
         void erase_page(std::int64_t start_row) noexcept;
         void erase_after(std::int64_t row_count) noexcept;
+        void erase_range(std::int64_t start_row, std::int64_t row_count) noexcept;
         void clear() noexcept;
         [[nodiscard]] std::size_t size() const noexcept;
         [[nodiscard]] std::size_t capacity() const noexcept;

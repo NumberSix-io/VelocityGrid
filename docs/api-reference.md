@@ -9,9 +9,12 @@ This is the supported C# surface. The WinRT API is an implementation boundary un
 - `DataProvider`: assigning a provider cancels current requests, adopts `RowCount`, and requests the loaded viewport.
 - `RowCount`: 64-bit logical size; normally provider-owned.
 - `NotifyDataChanged(long, VelocityGridDataChangeKind)`: changes the extent with explicit append, end-trim, or full-reset cache semantics.
+- `NotifyDataChanged(long, VelocityGridDataChangeKind, bool)`: additionally chooses whether the reset returns to row zero.
+- `Refresh(bool resetScrollPosition = false)`: clears all cached pages and reloads the current provider snapshot.
+- `InvalidateRows(long, long)`: evicts pages intersecting an in-range logical row span and reloads them when needed.
 - `RowHeight`: fixed DIPs for all rows. Native validation accepts finite values of at least 8.
 - `Columns`: immutable snapshot of configured visible columns.
-- `SetColumns(...)`: one or more columns mapped to the same zero-based source slots in each row payload. Columns outside the viewport are not rendered.
+- `SetColumns(...)`: one or more uniquely keyed columns. Replacing the snapshot cancels requests, clears cached pages, and recalculates horizontal layout.
 - `FirstVisibleRow` / `LastVisibleRow`: inclusive logical viewport.
 
 ### Navigation and selection
@@ -45,11 +48,13 @@ Assigning `RowCount` directly automatically uses `Append` or `TrimEnd`. Use `Not
 Providers must return the requested start, positive row count, exactly `RowCount * context.ColumnCount` values, and—if supplied—one format per value. They should observe cancellation, avoid blocking the UI thread before the first asynchronous yield, and return display-ready strings. Sorting/filtering/data access remain provider responsibilities.
 
 `VelocityGridFetchContext` contains request ID and generation for correlation plus the active `ColumnCount` required in each returned row; the IDs are not persistent row identities.
+Its `Columns` property is the exact immutable visible-column snapshot captured for the request. Use each column's `Key` to map application data; do not read a separate mutable column-chooser collection during asynchronous work.
 
 ## Columns
 
 | Property | Default | Validation |
 |---|---:|---|
+| `Key` | header in compatibility constructor | non-empty and unique in the configured snapshot |
 | `Header` | required | non-null |
 | `Width` | 130 DIPs | finite, at least 32 |
 | `Alignment` | `Left` | `Left`, `Center`, `Right` |

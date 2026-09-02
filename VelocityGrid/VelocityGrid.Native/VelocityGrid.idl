@@ -35,6 +35,8 @@ namespace VelocityGrid_Native
         void NavigateSelection(Int32 command);
         void ScrollToRow(Int64 rowIndex);
         void NotifyDataChanged(Int64 newRowCount, DataChangeKind changeKind);
+        void NotifyDataChangedWithOptions(Int64 newRowCount, DataChangeKind changeKind, Boolean resetScrollPosition);
+        void InvalidateRows(Int64 startRow, Int64 rowCount);
         UInt64 FrameCount{ get; };
         UInt64 CacheHits{ get; };
         UInt64 CacheMisses{ get; };

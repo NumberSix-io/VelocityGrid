@@ -84,6 +84,20 @@ namespace VelocityGrid_Native_Tests
             Assert::IsFalse(cache.contains_page(128));
         }
 
+        TEST_METHOD(PageCacheCanInvalidateAnIntersectingRowRange)
+        {
+            velocity_grid::page_cache cache(4);
+            cache.insert({ 0, 128, 10 });
+            cache.insert({ 128, 128, 10 });
+            cache.insert({ 256, 128, 10 });
+
+            cache.erase_range(120, 20);
+
+            Assert::IsFalse(cache.contains_page(0));
+            Assert::IsFalse(cache.contains_page(128));
+            Assert::IsTrue(cache.contains_page(256));
+        }
+
         TEST_METHOD(SchedulerPreservesGenerationOnCompletion)
         {
             velocity_grid::request_scheduler scheduler;

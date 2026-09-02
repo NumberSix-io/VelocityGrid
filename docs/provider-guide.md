@@ -15,7 +15,7 @@ public sealed class DatabaseProvider : IVelocityGridDataProvider
         var records = await QueryAsync(range.StartRow, range.RowCount, cancellationToken);
         var values = new string[range.RowCount * context.ColumnCount];
         var formats = new VelocityGridCellFormat[values.Length];
-        FlattenDisplayData(records, values, formats);
+        FlattenDisplayData(records, context.Columns, values, formats);
         return new VelocityGridPage(range.StartRow, range.RowCount, values, formats);
     }
 }
@@ -29,6 +29,7 @@ Assign it to `DataProvider`. The grid adopts its `RowCount`; assignment before l
 - `Values.Length == RowCount * context.ColumnCount`.
 - Optional formats contain exactly one entry per value.
 - Index with `rowOffset * context.ColumnCount + columnIndex`.
+- `context.Columns` is the exact immutable snapshot for that request. Map fields using `VelocityGridColumn.Key` so column chooser changes are race-free.
 - Changing the configured columns cancels outstanding requests and invalidates cached pages. New requests contain the new `context.ColumnCount`.
 
 The provider remains authoritative. Uncached streaming changes are ignored, so later fetches must contain current state.
@@ -43,6 +44,10 @@ grid.NotifyDataChanged(provider.RowCount, VelocityGridDataChangeKind.Reset);
 ```
 
 Use `Append` when new records are added strictly after every existing row, and `TrimEnd` when records are removed strictly from the end. These modes preserve unaffected cache entries. Use `Reset` whenever sorting, filtering, insertion, deletion, or replacement can change the meaning of an existing row index—even when `RowCount` stays the same.
+
+For a same-count query or projection refresh, use `grid.Refresh()`. Pass `resetScrollPosition: true` after a sort or filter when the expected experience is to return to the first result. The default preserves and clamps the existing viewport.
+
+When a contiguous set of logical rows changed without changing ordering or count, call `grid.InvalidateRows(startRow, rowCount)`. Cached pages intersecting the range are discarded; unrelated pages remain hot. Use `ApplyUpdates` instead when the caller already has display-ready values and formats for specific resident cells.
 
 `IVelocityGridDataProvider.RowCount` is a getter and has no notification event. Changing the provider alone does not update the grid. This deliberate explicit notification keeps threading, batching, and invalidation under the host application's control.
 
@@ -61,6 +66,18 @@ Non-cancellation exceptions are caught. The control calls native `FailPage`, rai
 ## Sorting and filtering
 
 Perform them at the source for large/remote datasets. Change provider query state and logical ordering rather than materializing all rows locally, then notify the grid with `Reset`.
+
+For a column chooser, build one new immutable column array and pass it to `SetColumns`. Each column should have a stable key independent of its display header:
+
+```csharp
+grid.SetColumns(new[]
+{
+    new VelocityGridColumn("trade.symbol", "Symbol", 140),
+    new VelocityGridColumn("trade.price", "Price", 110, VelocityGridTextAlignment.Right)
+});
+```
+
+`SetColumns` invalidates the previous row shape automatically. Subsequent provider requests contain those two descriptors in that order.
 
 `SyntheticDataProvider` supplies immediate deterministic data. `SimulatedRemoteDataProvider` adds cancellable latency. The basic sample demonstrates the complete integration.
 

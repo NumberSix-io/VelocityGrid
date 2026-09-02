@@ -92,6 +92,39 @@ namespace VelocityGrid.Managed.Tests
         }
 
         [UITestMethod]
+        public void ColumnsExposeStableUniqueKeys()
+        {
+            var grid = new VelocityGrid.Managed.VelocityGridControl();
+            grid.SetColumns(new[]
+            {
+                new VelocityGrid.Managed.VelocityGridColumn("trade.symbol", "Symbol"),
+                new VelocityGrid.Managed.VelocityGridColumn("trade.price", "Price", 100)
+            });
+
+            Assert.AreEqual("trade.symbol", grid.Columns[0].Key);
+            Assert.ThrowsExactly<ArgumentException>(() => grid.SetColumns(new[]
+            {
+                new VelocityGrid.Managed.VelocityGridColumn("duplicate", "One"),
+                new VelocityGrid.Managed.VelocityGridColumn("duplicate", "Two")
+            }));
+        }
+
+        [TestMethod]
+        public void FetchContextCarriesExactColumnSnapshot()
+        {
+            var columns = Array.AsReadOnly(new[]
+            {
+                new VelocityGrid.Managed.VelocityGridColumn("symbol", "Symbol"),
+                new VelocityGrid.Managed.VelocityGridColumn("price", "Price")
+            });
+            var context = new VelocityGrid.Managed.VelocityGridFetchContext(7, 4, columns);
+
+            Assert.AreEqual(2, context.ColumnCount);
+            Assert.AreSame(columns, context.Columns);
+            Assert.AreEqual("price", context.Columns[1].Key);
+        }
+
+        [UITestMethod]
         public void GridAcceptsMoreThanTenColumns()
         {
             var grid = new VelocityGrid.Managed.VelocityGridControl();
@@ -202,6 +235,19 @@ namespace VelocityGrid.Managed.Tests
                 grid.NotifyDataChanged(79, VelocityGrid.Managed.VelocityGridDataChangeKind.Append));
             Assert.ThrowsExactly<ArgumentException>(() =>
                 grid.NotifyDataChanged(81, VelocityGrid.Managed.VelocityGridDataChangeKind.TrimEnd));
+        }
+
+        [UITestMethod]
+        public void RefreshAndRangeInvalidationValidateTheirInputs()
+        {
+            var grid = new VelocityGrid.Managed.VelocityGridControl { RowCount = 100 };
+
+            grid.Refresh(resetScrollPosition: true);
+            grid.InvalidateRows(20, 10);
+
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => grid.InvalidateRows(-1, 1));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => grid.InvalidateRows(0, 0));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => grid.InvalidateRows(95, 6));
         }
 
         [TestMethod]

@@ -69,6 +69,11 @@ public sealed class VelocityGridControl : UserControl
 
     /// <summary>Updates the logical extent using explicit cache-invalidation semantics.</summary>
     public void NotifyDataChanged(long newRowCount, VelocityGridDataChangeKind changeKind)
+        => NotifyDataChanged(newRowCount, changeKind, resetScrollPosition: false);
+
+    /// <summary>Updates the logical extent and optionally returns the viewport to the first row.</summary>
+    public void NotifyDataChanged(long newRowCount, VelocityGridDataChangeKind changeKind,
+        bool resetScrollPosition)
     {
         if (newRowCount < 0) throw new ArgumentOutOfRangeException(nameof(newRowCount));
         if (!Enum.IsDefined(changeKind)) throw new ArgumentOutOfRangeException(nameof(changeKind));
@@ -77,7 +82,21 @@ public sealed class VelocityGridControl : UserControl
         if (changeKind == VelocityGridDataChangeKind.TrimEnd && newRowCount > RowCount)
             throw new ArgumentException("TrimEnd cannot increase the row count.", nameof(newRowCount));
 
-        _nativeGrid.NotifyDataChanged(newRowCount, (DataChangeKind)changeKind);
+        _nativeGrid.NotifyDataChangedWithOptions(newRowCount, (DataChangeKind)changeKind, resetScrollPosition);
+    }
+
+    /// <summary>Clears cached data and reloads the current provider snapshot.</summary>
+    public void Refresh(bool resetScrollPosition = false) =>
+        NotifyDataChanged(RowCount, VelocityGridDataChangeKind.Reset, resetScrollPosition);
+
+    /// <summary>Evicts provider pages intersecting a changed logical row range.</summary>
+    public void InvalidateRows(long startRow, long rowCount)
+    {
+        if (startRow < 0) throw new ArgumentOutOfRangeException(nameof(startRow));
+        if (rowCount <= 0) throw new ArgumentOutOfRangeException(nameof(rowCount));
+        if (startRow >= RowCount || rowCount > RowCount - startRow)
+            throw new ArgumentOutOfRangeException(nameof(rowCount), "The invalidation range must be within the current dataset.");
+        _nativeGrid.InvalidateRows(startRow, rowCount);
     }
 
     /// <summary>Applies a caller-owned batch to resident native cache entries.</summary>
@@ -104,8 +123,13 @@ public sealed class VelocityGridControl : UserControl
         var snapshot = columns.ToArray();
         if (snapshot.Length < 1)
             throw new ArgumentException("VelocityGrid requires at least one column.", nameof(columns));
+        if (snapshot.Any(column => column is null))
+            throw new ArgumentException("VelocityGrid columns cannot contain null entries.", nameof(columns));
+        if (snapshot.Select(column => column.Key).Distinct(StringComparer.Ordinal).Count() != snapshot.Length)
+            throw new ArgumentException("VelocityGrid column keys must be unique.", nameof(columns));
+        var immutableSnapshot = Array.AsReadOnly(snapshot);
         var previous = _columns;
-        _columns = snapshot;
+        _columns = immutableSnapshot;
         try
         {
             _nativeGrid.SetColumns(
@@ -129,7 +153,8 @@ public sealed class VelocityGridControl : UserControl
             if (ReferenceEquals(_dataProvider, value)) return;
             CancelAllRequests();
             _dataProvider = value;
-            if (value is not null) RowCount = value.RowCount;
+            if (value is not null)
+                NotifyDataChanged(value.RowCount, VelocityGridDataChangeKind.Reset);
             // PageRequested handlers are attached in OnLoaded. Activating a provider
             // earlier would emit an initial request that no managed listener can receive.
             _nativeGrid.ExternalProviderEnabled = _isLoaded && value is not null;
@@ -164,17 +189,18 @@ public sealed class VelocityGridControl : UserControl
         // completion is marshalled back here before crossing the ABI once per page.
         var provider = _dataProvider;
         if (provider is null) return;
+        var columns = _columns;
         var cancellation = new CancellationTokenSource();
         _requests[requestId] = cancellation;
         try
         {
             var page = await provider.GetRowsAsync(
                 new VelocityGridRange(startRow, rowCount),
-                new VelocityGridFetchContext(requestId, generation, _columns.Count),
+                new VelocityGridFetchContext(requestId, generation, columns),
                 cancellation.Token);
-            if (page.ColumnCount != _columns.Count)
+            if (page.ColumnCount != columns.Count)
                 throw new InvalidOperationException(
-                    $"The provider returned {page.ColumnCount} columns per row; {_columns.Count} were requested.");
+                    $"The provider returned {page.ColumnCount} columns per row; {columns.Count} were requested.");
             if (!cancellation.IsCancellationRequested)
                 _nativeGrid.CompletePage(requestId, generation, page.StartRow, page.RowCount, page.Values,
                     page.Formats.Select(format => (byte)format.Foreground).ToArray(),

@@ -14,6 +14,7 @@ First public preview.
 - Caller-controlled foreground, background, and built-in icon formatting.
 - Batched live updates, selection, keyboard navigation, accessibility, and performance metrics.
 - Explicit append, end-trim, and full-reset notifications for changing datasets.
+- Stable keyed column snapshots, refresh scroll policy, and targeted row-range invalidation.
 - x86, x64, and ARM64 native runtime assets.
 - Package-only C# WinUI, WPF, and C++/WinRT validation consumers.
 

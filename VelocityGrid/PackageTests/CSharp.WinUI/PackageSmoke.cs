@@ -11,7 +11,10 @@ public static class PackageSmoke
             DataProvider = new SyntheticDataProvider(1_000),
             RowHeight = 24
         };
+        grid.SetColumns(new[] { new VelocityGridColumn("symbol", "Symbol") });
         grid.NotifyDataChanged(1_100, VelocityGridDataChangeKind.Append);
+        grid.InvalidateRows(0, 1);
+        grid.Refresh();
         return grid;
     }
 }

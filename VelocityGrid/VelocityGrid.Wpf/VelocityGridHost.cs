@@ -54,6 +54,28 @@ public sealed class VelocityGridHost : HwndHost
         Grid.NotifyDataChanged(newRowCount, changeKind);
     }
 
+    /// <summary>Updates the logical extent and optionally returns the viewport to the first row.</summary>
+    public void NotifyDataChanged(long newRowCount, VelocityGridDataChangeKind changeKind,
+        bool resetScrollPosition)
+    {
+        if (Grid is null) throw new InvalidOperationException("The grid is available after the host raises GridReady.");
+        Grid.NotifyDataChanged(newRowCount, changeKind, resetScrollPosition);
+    }
+
+    /// <summary>Clears cached data and reloads the current provider snapshot.</summary>
+    public void Refresh(bool resetScrollPosition = false)
+    {
+        if (Grid is null) throw new InvalidOperationException("The grid is available after the host raises GridReady.");
+        Grid.Refresh(resetScrollPosition);
+    }
+
+    /// <summary>Evicts pages intersecting a changed logical row range.</summary>
+    public void InvalidateRows(long startRow, long rowCount)
+    {
+        if (Grid is null) throw new InvalidOperationException("The grid is available after the host raises GridReady.");
+        Grid.InvalidateRows(startRow, rowCount);
+    }
+
     /// <inheritdoc />
     protected override HandleRef BuildWindowCore(HandleRef hwndParent)
     {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,11 +8,38 @@ namespace VelocityGrid.Managed;
 /// <summary>A contiguous logical row range.</summary>
 public readonly record struct VelocityGridRange(long StartRow, int RowCount);
 
-/// <summary>Correlation metadata and the active row shape for one viewport request.</summary>
-public readonly record struct VelocityGridFetchContext(
-    ulong RequestId,
-    ulong Generation,
-    int ColumnCount = VelocityGridControl.DefaultColumnCount);
+/// <summary>Correlation metadata and the immutable visible-column snapshot for one viewport request.</summary>
+public readonly record struct VelocityGridFetchContext
+{
+    /// <summary>Creates a count-only context for compatibility and provider unit tests.</summary>
+    public VelocityGridFetchContext(ulong requestId, ulong generation,
+        int columnCount = VelocityGridControl.DefaultColumnCount)
+    {
+        if (columnCount <= 0) throw new ArgumentOutOfRangeException(nameof(columnCount));
+        RequestId = requestId;
+        Generation = generation;
+        ColumnCount = columnCount;
+        Columns = Array.Empty<VelocityGridColumn>();
+    }
+
+    /// <summary>Creates a context containing the exact columns requested by the grid.</summary>
+    public VelocityGridFetchContext(ulong requestId, ulong generation,
+        IReadOnlyList<VelocityGridColumn> columns)
+    {
+        ArgumentNullException.ThrowIfNull(columns);
+        if (columns.Count == 0) throw new ArgumentException("At least one column is required.", nameof(columns));
+        RequestId = requestId;
+        Generation = generation;
+        ColumnCount = columns.Count;
+        Columns = columns;
+    }
+
+    public ulong RequestId { get; }
+    public ulong Generation { get; }
+    public int ColumnCount { get; }
+    /// <summary>The exact visible columns for this request, or an empty list for a count-only test context.</summary>
+    public IReadOnlyList<VelocityGridColumn> Columns { get; }
+}
 
 /// <summary>A display-ready row-major page and optional compact cell formatting.</summary>
 public sealed class VelocityGridPage

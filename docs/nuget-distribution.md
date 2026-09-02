@@ -57,6 +57,9 @@ Dynamic datasets use the same explicit native contract:
 ```cpp
 grid.NotifyDataChanged(newRowCount, winrt::VelocityGrid_Native::DataChangeKind::Append);
 // Use TrimEnd for tail removal, or Reset when existing row indices may mean different data.
+grid.InvalidateRows(startRow, rowCount); // Evict only pages intersecting changed rows.
+grid.NotifyDataChangedWithOptions(newRowCount,
+    winrt::VelocityGrid_Native::DataChangeKind::Reset, true); // Reset and return to row zero.
 ```
 
 ## Build local packages

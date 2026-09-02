@@ -94,6 +94,24 @@ namespace velocity_grid
         }
     }
 
+    void page_cache::erase_range(std::int64_t const start_row, std::int64_t const row_count) noexcept
+    {
+        auto const end_row = start_row + row_count;
+        for (auto item = m_pages.begin(); item != m_pages.end();)
+        {
+            auto const page_end = item->second.value.start_row + item->second.value.row_count;
+            if (item->second.value.start_row < end_row && page_end > start_row)
+            {
+                m_recency.erase(item->second.recency);
+                item = m_pages.erase(item);
+            }
+            else
+            {
+                ++item;
+            }
+        }
+    }
+
     void page_cache::clear() noexcept
     {
         m_pages.clear();

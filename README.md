@@ -77,16 +77,16 @@ Package consumers do not add project references, run C#/WinRT, or copy native fi
 TradesGrid.RowHeight = 24;
 TradesGrid.SetColumns(new[]
 {
-    new VelocityGridColumn("Symbol", 140),
-    new VelocityGridColumn("Price", 110, VelocityGridTextAlignment.Right),
-    new VelocityGridColumn("Status", 120, VelocityGridTextAlignment.Center)
+    new VelocityGridColumn("trade.symbol", "Symbol", 140),
+    new VelocityGridColumn("trade.price", "Price", 110, VelocityGridTextAlignment.Right),
+    new VelocityGridColumn("trade.status", "Status", 120, VelocityGridTextAlignment.Center)
 });
 
 TradesGrid.DataProvider = new TradeProvider();
 TradesGrid.DataError += (_, e) => ShowProviderError(e.Exception);
 ```
 
-Providers return one flat row-major page. `context.ColumnCount` is the current configured column count, so the provider can produce the correct row shape for any configuration:
+Providers return one flat row-major page. `context.Columns` is the immutable column snapshot for that particular request, so a provider can safely map application keys after a column chooser reorders or hides fields:
 
 ```csharp
 public sealed class TradeProvider : IVelocityGridDataProvider
@@ -100,7 +100,7 @@ public sealed class TradeProvider : IVelocityGridDataProvider
     {
         var values = new string[range.RowCount * context.ColumnCount];
         var formats = new VelocityGridCellFormat[values.Length];
-        await LoadDisplayValuesAsync(values, range, cancellationToken);
+        await LoadDisplayValuesAsync(values, range, context.Columns, cancellationToken);
         return new VelocityGridPage(range.StartRow, range.RowCount, values, formats);
     }
 }
@@ -130,6 +130,8 @@ When the dataset extent or ordering changes, update the provider first and notif
 TradesGrid.NotifyDataChanged(provider.RowCount, VelocityGridDataChangeKind.Append);  // tail growth
 TradesGrid.NotifyDataChanged(provider.RowCount, VelocityGridDataChangeKind.TrimEnd); // tail removal
 TradesGrid.NotifyDataChanged(provider.RowCount, VelocityGridDataChangeKind.Reset);   // reorder/filter/arbitrary changes
+TradesGrid.Refresh(resetScrollPosition: true);                                      // same-count sort/filter; return to top
+TradesGrid.InvalidateRows(startRow: 500, rowCount: 25);                              // reload only changed rows
 ```
 
 See [API/configuration](docs/api-reference.md), [providers](docs/provider-guide.md), [formatting](docs/cell-formatting.md), and [streaming updates](docs/streaming-updates.md) for full contracts and examples.
@@ -202,10 +204,12 @@ The [design plan](docs/VelocityGrid_Design_and_Development_Plan.md) explains the
 
 | Option | Purpose | Constraint |
 |---|---|---|
-| `DataProvider` | Supplies cancellable viewport pages | `context.ColumnCount` values per row |
+| `DataProvider` | Supplies cancellable viewport pages | One value per `context.Columns` entry per row |
 | `RowCount` | Logical dataset size | Normally taken from provider |
 | `RowHeight` | Fixed row height in DIPs | Minimum 8 |
-| `SetColumns(...)` | Header, width, alignment | At least one; width ≥ 32 DIPs |
+| `SetColumns(...)` | Key, header, width, alignment | Unique keys; at least one; width ≥ 32 DIPs |
+| `Refresh(...)` | Full same-snapshot cache reload | Can preserve position or return to row zero |
+| `InvalidateRows(...)` | Targeted provider reload | Range must be inside the dataset |
 | `ScrollToRow(...)` | Random logical jump | Clamped to dataset |
 | `ApplyUpdates(...)` | Batched cached-cell changes | Uncached changes ignored |
 | `SelectionChanged` | Logical cell selection | Single cell |
