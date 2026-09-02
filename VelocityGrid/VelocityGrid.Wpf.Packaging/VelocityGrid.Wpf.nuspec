@@ -4,8 +4,11 @@
     <id>VelocityGrid.Wpf</id>
     <version>$version$</version>
     <title>VelocityGrid WPF Host</title>
-    <authors>Dean C</authors>
+    <authors>Dean Chalk</authors>
     <license type="expression">MIT</license>
+    <projectUrl>https://github.com/deanchalk/VelocityGrid</projectUrl>
+    <copyright>Copyright (c) 2026 Dean Chalk</copyright>
+    <releaseNotes>https://github.com/deanchalk/VelocityGrid/blob/main/CHANGELOG.md</releaseNotes>
     <repository type="git" url="https://github.com/deanchalk/VelocityGrid.git" />
     <readme>README.md</readme>
     <description>A frictionless WPF HwndHost adapter for the native WinUI VelocityGrid control.</description>
@@ -21,7 +24,7 @@
     <file src="..\VelocityGrid.Wpf\bin\x64\Release\net8.0-windows10.0.19041.0\VelocityGrid.Wpf.pdb" target="lib\net8.0-windows10.0.19041.0" />
     <file src="..\VelocityGrid.Wpf\bin\x64\Release\net8.0-windows10.0.19041.0\VelocityGrid.Wpf.xml" target="lib\net8.0-windows10.0.19041.0" />
     <file src="buildTransitive\VelocityGrid.Wpf.props" target="buildTransitive\VelocityGrid.Wpf.props" />
-    <file src="..\..\README.md" />
+    <file src="..\..\NUGET_README.md" target="README.md" />
     <file src="..\..\LICENSE" />
   </files>
 </package>

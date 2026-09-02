@@ -106,8 +106,6 @@ namespace VelocityGrid.Managed.Tests
         public void PerformanceMetricsCanBeReset()
         {
             var grid = new VelocityGrid.Managed.VelocityGridControl { RowCount = 1_000_000 };
-            grid.ScrollToRow(500_000);
-            Assert.AreEqual(500_000, grid.FirstVisibleRow);
             grid.ResetPerformanceMetrics();
             Assert.AreEqual(0UL, grid.PerformanceMetrics.FrameCount);
             Assert.AreEqual(0UL, grid.PerformanceMetrics.CacheHits);

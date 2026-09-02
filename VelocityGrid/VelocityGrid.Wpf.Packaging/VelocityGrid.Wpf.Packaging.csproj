@@ -4,7 +4,7 @@
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecFile>VelocityGrid.Wpf.nuspec</NuspecFile>
-    <VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.9</VelocityGridPackageVersion><NuspecProperties>version=$(VelocityGridPackageVersion)</NuspecProperties>
+    <VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.1</VelocityGridPackageVersion><NuspecProperties>version=$(VelocityGridPackageVersion)</NuspecProperties>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\packages</PackageOutputPath>

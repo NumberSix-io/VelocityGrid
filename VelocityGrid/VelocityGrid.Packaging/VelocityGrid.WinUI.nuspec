@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd"><metadata>
-  <id>VelocityGrid.WinUI</id><version>$version$</version><title>VelocityGrid for C# WinUI</title><authors>Dean C</authors>
+  <id>VelocityGrid.WinUI</id><version>$version$</version><title>VelocityGrid for C# WinUI</title><authors>Dean Chalk</authors>
   <license type="expression">MIT</license><readme>README.md</readme>
+  <projectUrl>https://github.com/deanchalk/VelocityGrid</projectUrl><copyright>Copyright (c) 2026 Dean Chalk</copyright>
+  <releaseNotes>https://github.com/deanchalk/VelocityGrid/blob/main/CHANGELOG.md</releaseNotes>
   <repository type="git" url="https://github.com/deanchalk/VelocityGrid.git" />
   <description>A thin, idiomatic C# facade for the high-performance native VelocityGrid WinUI 3 control.</description>
   <tags>winui winui3 datagrid grid virtualization csharp</tags>
@@ -14,5 +16,5 @@
     <file src="..\VelocityGrid.Managed\bin\x64\Release\net8.0-windows10.0.19041.0\VelocityGrid.Managed.dll" target="lib\net8.0-windows10.0.19041.0" />
     <file src="..\VelocityGrid.Managed\bin\x64\Release\net8.0-windows10.0.19041.0\VelocityGrid.Managed.pdb" target="lib\net8.0-windows10.0.19041.0" />
   <file src="..\VelocityGrid.Managed\bin\x64\Release\net8.0-windows10.0.19041.0\VelocityGrid.Managed.xml" target="lib\net8.0-windows10.0.19041.0" />
-  <file src="..\..\README.md" /><file src="..\..\LICENSE" />
+  <file src="..\..\NUGET_README.md" target="README.md" /><file src="..\..\LICENSE" />
 </files></package>

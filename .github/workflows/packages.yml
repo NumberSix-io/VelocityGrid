@@ -38,5 +38,11 @@ jobs:
         if: github.ref_type == 'tag'
         shell: pwsh
         run: |
-          dotnet nuget push "VelocityGrid/artifacts/packages/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "${{ secrets.NUGET_API_KEY }}" --skip-duplicate
-          dotnet nuget push "VelocityGrid/artifacts/packages/*.snupkg" --source https://api.nuget.org/v3/index.json --api-key "${{ secrets.NUGET_API_KEY }}" --skip-duplicate
+          $version = "${{ steps.version.outputs.value }}"
+          $source = "https://api.nuget.org/v3/index.json"
+          $key = "${{ secrets.NUGET_API_KEY }}"
+          dotnet nuget push "VelocityGrid/artifacts/packages/VelocityGrid.Native.WinUI.$version.nupkg" --source $source --api-key $key --skip-duplicate
+          dotnet nuget push "VelocityGrid/artifacts/packages/VelocityGrid.WinUI.$version.nupkg" --source $source --api-key $key --skip-duplicate
+          dotnet nuget push "VelocityGrid/artifacts/packages/VelocityGrid.Wpf.$version.nupkg" --source $source --api-key $key --skip-duplicate
+          dotnet nuget push "VelocityGrid/artifacts/packages/VelocityGrid.WinUI.$version.snupkg" --source $source --api-key $key --skip-duplicate
+          dotnet nuget push "VelocityGrid/artifacts/packages/VelocityGrid.Wpf.$version.snupkg" --source $source --api-key $key --skip-duplicate

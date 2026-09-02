@@ -20,7 +20,7 @@ All executable consumers must select x64, x86, or ARM64. Package targets reject 
   <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 </PropertyGroup>
 <ItemGroup>
-  <PackageReference Include="VelocityGrid.WinUI" Version="0.1.0-preview.9" />
+  <PackageReference Include="VelocityGrid.WinUI" Version="0.1.0-preview.1" />
 </ItemGroup>
 ```
 
@@ -63,7 +63,7 @@ From repository root in PowerShell:
 Override the immutable package version when required:
 
 ```powershell
-./build/Build-Packages.ps1 -Version 0.1.0-preview.9
+./build/Build-Packages.ps1 -Version 0.1.0-preview.1
 ```
 
 The script builds three native architectures, the managed and WPF adapters, creates packages under `VelocityGrid/artifacts/packages`, and compiles three independent package consumers. These consumers reference only the local feed, never source projects.

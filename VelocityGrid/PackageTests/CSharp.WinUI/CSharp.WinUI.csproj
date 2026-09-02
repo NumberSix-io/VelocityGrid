@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework><UseWinUI>true</UseWinUI><PlatformTarget>x64</PlatformTarget><RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <RestoreSources>$(MSBuildThisFileDirectory)..\..\artifacts\packages;https://api.nuget.org/v3/index.json</RestoreSources><VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.9</VelocityGridPackageVersion>
+    <RestoreSources>$(MSBuildThisFileDirectory)..\..\artifacts\packages;https://api.nuget.org/v3/index.json</RestoreSources><VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.1</VelocityGridPackageVersion>
   </PropertyGroup>
   <ItemGroup><PackageReference Include="VelocityGrid.WinUI" Version="$(VelocityGridPackageVersion)" /></ItemGroup>
 </Project>

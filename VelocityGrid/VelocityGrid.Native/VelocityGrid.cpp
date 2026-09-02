@@ -135,10 +135,11 @@ namespace winrt::VelocityGrid_Native::implementation
         }
         m_external_requests.erase(request);
         auto const column_count = m_columns.size();
-        auto const cell_count = row_count > 0
+        auto const expected_cell_count = row_count > 0
             ? static_cast<std::uint64_t>(row_count) * column_count : 0;
-        if (row_count <= 0 || column_count == 0 || values.size() != cell_count ||
-            foregrounds.size() != cell_count || backgrounds.size() != cell_count || icons.size() != cell_count)
+        if (row_count <= 0 || column_count == 0 || column_count > INT32_MAX ||
+            values.size() != expected_cell_count || foregrounds.size() != expected_cell_count ||
+            backgrounds.size() != expected_cell_count || icons.size() != expected_cell_count)
         {
             ++m_external_failed;
             m_last_provider_error = L"Provider returned an incomplete page";
@@ -147,8 +148,9 @@ namespace winrt::VelocityGrid_Native::implementation
         velocity_grid::page page{ start_row, row_count, static_cast<std::int32_t>(column_count) };
         page.values.reserve(values.size());
         for (auto const& value : values) page.values.emplace_back(value.c_str());
+        auto const cell_count = values.size();
         page.formats.reserve(cell_count);
-        for (std::uint64_t index = 0; index < cell_count; ++index)
+        for (winrt::array_view<std::uint8_t const>::size_type index = 0; index < cell_count; ++index)
             page.formats.push_back({ foregrounds[index], backgrounds[index], icons[index] });
         m_cache.insert(std::move(page));
         m_last_provider_error = {};

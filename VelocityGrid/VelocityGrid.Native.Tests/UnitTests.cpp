@@ -28,7 +28,8 @@ namespace VelocityGrid_Native_Tests
             Assert::AreEqual<std::int64_t>(0, viewport.first_row);
             Assert::AreEqual<std::int64_t>(2, viewport.last_row);
             Assert::IsTrue(viewport.has_partial_first_row);
-            Assert::IsTrue(viewport.has_partial_last_row);
+            // The viewport ends at pixel 72, exactly on the boundary after row 2.
+            Assert::IsFalse(viewport.has_partial_last_row);
         }
 
         TEST_METHOD(RandomJumpIsClampedToDataset)

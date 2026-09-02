@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd"><metadata>
-  <id>VelocityGrid.Native.WinUI</id><version>$version$</version><title>VelocityGrid Native WinUI Runtime</title><authors>Dean C</authors>
+  <id>VelocityGrid.Native.WinUI</id><version>$version$</version><title>VelocityGrid Native WinUI Runtime</title><authors>Dean Chalk</authors>
   <license type="expression">MIT</license><readme>README.md</readme>
+  <projectUrl>https://github.com/deanchalk/VelocityGrid</projectUrl><copyright>Copyright (c) 2026 Dean Chalk</copyright>
+  <releaseNotes>https://github.com/deanchalk/VelocityGrid/blob/main/CHANGELOG.md</releaseNotes>
   <repository type="git" url="https://github.com/deanchalk/VelocityGrid.git" />
   <description>The C++/WinRT component, metadata, and x86/x64/ARM64 runtimes for VelocityGrid.</description>
   <tags>winui winui3 cpp cppwinrt datagrid virtualization native</tags>
@@ -21,5 +23,5 @@
   <file src="..\VelocityGrid.Native\Generated Files\winrt\impl\VelocityGrid_Native.*.h" target="buildTransitive\include\winrt\impl" />
   <file src="buildTransitive\VelocityGrid.Native.WinUI.props" target="buildTransitive" /><file src="buildTransitive\VelocityGrid.Native.WinUI.targets" target="buildTransitive" />
   <file src="buildTransitive\VelocityGrid.Native.WinUI.props" target="build\native" /><file src="buildTransitive\VelocityGrid.Native.WinUI.targets" target="build\native" />
-  <file src="..\..\README.md" /><file src="..\..\LICENSE" />
+  <file src="..\..\NUGET_README.md" target="README.md" /><file src="..\..\LICENSE" />
 </files></package>

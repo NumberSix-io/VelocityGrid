@@ -1,5 +1,5 @@
 <Project>
 <Target Name="VelocityGridValidateArchitecture" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
   <Error Condition="'$(PlatformTarget)' == 'AnyCPU' and '$(RuntimeIdentifier)' == '' and '$(OutputType)' != 'Library'" Text="VelocityGrid contains native code. Select x64, x86, or ARM64, or set a matching win-* RuntimeIdentifier." />
-  <Error Condition="'$(RuntimeIdentifier)' != '' and '$(RuntimeIdentifier)' != 'win-x64' and '$(RuntimeIdentifier)' != 'win-x86' and '$(RuntimeIdentifier)' != 'win-arm64'" Text="VelocityGrid supports win-x64, win-x86, and win-arm64 runtime identifiers." />
+  <Error Condition="'$(RuntimeIdentifier)' != '' and !$([System.String]::Copy('$(RuntimeIdentifier)').EndsWith('-x64')) and !$([System.String]::Copy('$(RuntimeIdentifier)').EndsWith('-x86')) and !$([System.String]::Copy('$(RuntimeIdentifier)').EndsWith('-arm64'))" Text="VelocityGrid supports Windows x64, x86, and ARM64 runtime identifiers (received '$(RuntimeIdentifier)')." />
 </Target></Project>
