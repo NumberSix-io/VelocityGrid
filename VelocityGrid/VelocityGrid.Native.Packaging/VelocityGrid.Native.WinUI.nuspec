@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd"><metadata>
   <id>VelocityGrid.Native.WinUI</id><version>$version$</version><title>VelocityGrid Native WinUI Runtime</title><authors>Dean Chalk</authors>
   <license type="expression">MIT</license><readme>README.md</readme>
-  <projectUrl>https://github.com/deanchalk/VelocityGrid</projectUrl><copyright>Copyright (c) 2026 Dean Chalk</copyright>
-  <releaseNotes>https://github.com/deanchalk/VelocityGrid/blob/main/CHANGELOG.md</releaseNotes>
-  <repository type="git" url="https://github.com/deanchalk/VelocityGrid.git" />
+  <projectUrl>https://github.com/NumberSix-io/VelocityGrid</projectUrl><copyright>Copyright (c) 2026 Dean Chalk</copyright>
+  <releaseNotes>https://github.com/NumberSix-io/VelocityGrid/blob/main/CHANGELOG.md</releaseNotes>
+  <repository type="git" url="https://github.com/NumberSix-io/VelocityGrid.git" />
   <description>The C++/WinRT component, metadata, and x86/x64/ARM64 runtimes for VelocityGrid.</description>
   <tags>winui winui3 cpp cppwinrt datagrid virtualization native</tags>
   <dependencies>

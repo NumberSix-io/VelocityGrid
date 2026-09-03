@@ -54,11 +54,11 @@ Content(grid.View());
 
 ## Documentation
 
-- [Complete setup and usage](https://github.com/deanchalk/VelocityGrid#readme)
-- [Managed API and configuration](https://github.com/deanchalk/VelocityGrid/blob/main/docs/api-reference.md)
-- [Provider implementation](https://github.com/deanchalk/VelocityGrid/blob/main/docs/provider-guide.md)
-- [Cell formatting](https://github.com/deanchalk/VelocityGrid/blob/main/docs/cell-formatting.md)
-- [NuGet distribution details](https://github.com/deanchalk/VelocityGrid/blob/main/docs/nuget-distribution.md)
-- [Issues and support](https://github.com/deanchalk/VelocityGrid/issues)
+- [Complete setup and usage](https://github.com/NumberSix-io/VelocityGrid#readme)
+- [Managed API and configuration](https://github.com/NumberSix-io/VelocityGrid/blob/main/docs/api-reference.md)
+- [Provider implementation](https://github.com/NumberSix-io/VelocityGrid/blob/main/docs/provider-guide.md)
+- [Cell formatting](https://github.com/NumberSix-io/VelocityGrid/blob/main/docs/cell-formatting.md)
+- [NuGet distribution details](https://github.com/NumberSix-io/VelocityGrid/blob/main/docs/nuget-distribution.md)
+- [Issues and support](https://github.com/NumberSix-io/VelocityGrid/issues)
 
 VelocityGrid is an early preview. Please report compatibility and performance findings through GitHub Issues.

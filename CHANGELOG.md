@@ -18,4 +18,4 @@ First public preview.
 - x86, x64, and ARM64 native runtime assets.
 - Package-only C# WinUI, WPF, and C++/WinRT validation consumers.
 
-[0.1.0-preview.1]: https://github.com/deanchalk/VelocityGrid/releases/tag/v0.1.0-preview.1
+[0.1.0-preview.1]: https://github.com/NumberSix-io/VelocityGrid/releases/tag/v0.1.0-preview.1

@@ -6,10 +6,10 @@
     <title>VelocityGrid WPF Host</title>
     <authors>Dean Chalk</authors>
     <license type="expression">MIT</license>
-    <projectUrl>https://github.com/deanchalk/VelocityGrid</projectUrl>
+    <projectUrl>https://github.com/NumberSix-io/VelocityGrid</projectUrl>
     <copyright>Copyright (c) 2026 Dean Chalk</copyright>
-    <releaseNotes>https://github.com/deanchalk/VelocityGrid/blob/main/CHANGELOG.md</releaseNotes>
-    <repository type="git" url="https://github.com/deanchalk/VelocityGrid.git" />
+    <releaseNotes>https://github.com/NumberSix-io/VelocityGrid/blob/main/CHANGELOG.md</releaseNotes>
+    <repository type="git" url="https://github.com/NumberSix-io/VelocityGrid.git" />
     <readme>README.md</readme>
     <description>A frictionless WPF HwndHost adapter for the native WinUI VelocityGrid control.</description>
     <tags>wpf winui xaml-islands datagrid virtualization</tags>
