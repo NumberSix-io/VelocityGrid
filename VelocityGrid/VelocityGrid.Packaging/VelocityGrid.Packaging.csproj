@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework><IsPackable>true</IsPackable><IncludeBuildOutput>false</IncludeBuildOutput>
-    <VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.1</VelocityGridPackageVersion><NuspecFile>VelocityGrid.WinUI.nuspec</NuspecFile><NuspecProperties>version=$(VelocityGridPackageVersion)</NuspecProperties>
+    <VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.7</VelocityGridPackageVersion><NuspecFile>VelocityGrid.WinUI.nuspec</NuspecFile><NuspecProperties>version=$(VelocityGridPackageVersion)</NuspecProperties>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\packages</PackageOutputPath>

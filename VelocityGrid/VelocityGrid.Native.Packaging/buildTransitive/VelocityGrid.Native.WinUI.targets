@@ -1,5 +1,24 @@
 <Project>
+<PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">
+  <VelocityGridRuntimeIdentifier Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</VelocityGridRuntimeIdentifier>
+  <VelocityGridRuntimeIdentifier Condition="'$(VelocityGridRuntimeIdentifier)' == '' and '$(Platform)' == 'x64'">win-x64</VelocityGridRuntimeIdentifier>
+  <VelocityGridRuntimeIdentifier Condition="'$(VelocityGridRuntimeIdentifier)' == '' and '$(Platform)' == 'Win32'">win-x86</VelocityGridRuntimeIdentifier>
+  <VelocityGridRuntimeIdentifier Condition="'$(VelocityGridRuntimeIdentifier)' == '' and '$(Platform)' == 'ARM64'">win-arm64</VelocityGridRuntimeIdentifier>
+  <!-- buildTransitive is one level below the package root; build/native is two. -->
+  <VelocityGridNativeRuntimeDll>$(MSBuildThisFileDirectory)..\runtimes\$(VelocityGridRuntimeIdentifier)\native\VelocityGrid.Native.dll</VelocityGridNativeRuntimeDll>
+  <VelocityGridNativeRuntimeDll Condition="!Exists('$(VelocityGridNativeRuntimeDll)')">$(MSBuildThisFileDirectory)..\..\runtimes\$(VelocityGridRuntimeIdentifier)\native\VelocityGrid.Native.dll</VelocityGridNativeRuntimeDll>
+</PropertyGroup>
+<PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">
+  <!-- Merge registration-free WinRT activation into native application manifests. -->
+  <ManifestAdditionalManifestFiles>$(ManifestAdditionalManifestFiles);$(MSBuildThisFileDirectory)VelocityGrid.Native.WinUI.manifest</ManifestAdditionalManifestFiles>
+</PropertyGroup>
 <Target Name="VelocityGridValidateArchitecture" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
   <Error Condition="'$(PlatformTarget)' == 'AnyCPU' and '$(RuntimeIdentifier)' == '' and '$(OutputType)' != 'Library'" Text="VelocityGrid contains native code. Select x64, x86, or ARM64, or set a matching win-* RuntimeIdentifier." />
   <Error Condition="'$(RuntimeIdentifier)' != '' and !$([System.String]::Copy('$(RuntimeIdentifier)').EndsWith('-x64')) and !$([System.String]::Copy('$(RuntimeIdentifier)').EndsWith('-x86')) and !$([System.String]::Copy('$(RuntimeIdentifier)').EndsWith('-arm64'))" Text="VelocityGrid supports Windows x64, x86, and ARM64 runtime identifiers (received '$(RuntimeIdentifier)')." />
-</Target></Project>
+</Target>
+<Target Name="VelocityGridCopyNativeRuntime" AfterTargets="Build" Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">
+  <Error Condition="'$(VelocityGridRuntimeIdentifier)' == ''" Text="VelocityGrid could not map platform '$(Platform)' to a supported Windows runtime." />
+  <Error Condition="!Exists('$(VelocityGridNativeRuntimeDll)')" Text="VelocityGrid native runtime was not found at '$(VelocityGridNativeRuntimeDll)'. Restore the package for $(VelocityGridRuntimeIdentifier)." />
+  <Copy SourceFiles="$(VelocityGridNativeRuntimeDll)" DestinationFiles="$(TargetDir)VelocityGrid.Native.dll" SkipUnchangedFiles="true" />
+</Target>
+</Project>

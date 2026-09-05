@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "VelocityGrid.h"
+#include "Input/InteractionTrackerOwner.h"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
 #include <ranges>
 #include <numeric>
 #include <microsoft.ui.xaml.media.dxinterop.h>
@@ -46,21 +48,38 @@ namespace winrt::VelocityGrid_Native::implementation
     {
         for (int column = 0; column < 10; ++column)
             m_columns.push_back({ std::format(L"Column {}", column + 1), 130.0, 0 });
-        build_visual_tree();
-        create_device_resources();
-        m_size_changed_token = m_root.SizeChanged({ this, &VelocityGrid::on_size_changed });
-        m_pointer_wheel_token = m_root.PointerWheelChanged({ this, &VelocityGrid::on_pointer_wheel });
-        m_pointer_pressed_token = m_root.PointerPressed({ this, &VelocityGrid::on_pointer_pressed });
-        m_key_down_token = m_root.KeyDown({ this, &VelocityGrid::on_key_down });
+        try
+        {
+            build_visual_tree();
+            Content(m_root);
+            IsTabStop(true);
+        }
+        catch (...) { throw hresult_error(to_hresult(), L"VelocityGrid native construction failed while building the XAML visual tree."); }
+        try { create_device_resources(); }
+        catch (...) { throw hresult_error(to_hresult(), L"VelocityGrid native construction failed while creating DirectX resources."); }
+        try
+        {
+            m_size_changed_token = m_root.SizeChanged({ this, &VelocityGrid::on_size_changed });
+            m_loaded_token = m_root.Loaded({ this, &VelocityGrid::on_loaded });
+            m_pointer_pressed_token = m_root.PointerPressed({ this, &VelocityGrid::on_pointer_pressed });
+            auto const control = static_cast<UIElement>(*this);
+            m_key_down_token = control.KeyDown({ this, &VelocityGrid::on_key_down });
+            m_got_focus_token = control.GotFocus({ this, &VelocityGrid::on_got_focus });
+            m_lost_focus_token = control.LostFocus({ this, &VelocityGrid::on_lost_focus });
+        }
+        catch (...) { throw hresult_error(to_hresult(), L"VelocityGrid native construction failed while attaching XAML event handlers."); }
+        try
+        {
+            m_render_timer = DispatcherTimer();
+            m_render_timer.Interval(std::chrono::milliseconds(16));
+            m_render_timer_token = m_render_timer.Tick({ this, &VelocityGrid::on_render_tick });
 
-        m_render_timer = DispatcherTimer();
-        m_render_timer.Interval(std::chrono::milliseconds(16));
-        m_render_timer_token = m_render_timer.Tick({ this, &VelocityGrid::on_render_tick });
-
-        m_timer = DispatcherTimer();
-        m_timer.Interval(std::chrono::milliseconds(250));
-        m_timer_token = m_timer.Tick({ this, &VelocityGrid::on_tick });
-        m_timer.Start();
+            m_timer = DispatcherTimer();
+            m_timer.Interval(std::chrono::milliseconds(250));
+            m_timer_token = m_timer.Tick({ this, &VelocityGrid::on_tick });
+            m_timer.Start();
+        }
+        catch (...) { throw hresult_error(to_hresult(), L"VelocityGrid native construction failed while creating dispatcher timers."); }
     }
 
     VelocityGrid::~VelocityGrid() noexcept
@@ -72,7 +91,13 @@ namespace winrt::VelocityGrid_Native::implementation
     double VelocityGrid::RowHeight() const noexcept { return m_row_height; }
     std::int64_t VelocityGrid::FirstVisibleRow() const noexcept { return m_viewport.first_row; }
     std::int64_t VelocityGrid::LastVisibleRow() const noexcept { return m_viewport.last_row; }
-    UIElement VelocityGrid::View() const noexcept { return m_root; }
+    UIElement VelocityGrid::View() const noexcept
+    {
+        // Compatibility alias for existing WPF and native hosts. The object is
+        // now the WinUI control; callers must host it rather than re-parenting
+        // its private content root.
+        return *const_cast<VelocityGrid*>(this);
+    }
     bool VelocityGrid::ExternalProviderEnabled() const noexcept { return m_external_provider_enabled; }
     std::int32_t VelocityGrid::VisualTheme() const noexcept { return m_visual_theme; }
 
@@ -407,10 +432,19 @@ namespace winrt::VelocityGrid_Native::implementation
             if (m_root)
             {
                 m_root.SizeChanged(m_size_changed_token);
-                m_root.PointerWheelChanged(m_pointer_wheel_token);
+                m_root.Loaded(m_loaded_token);
                 m_root.PointerPressed(m_pointer_pressed_token);
-                m_root.KeyDown(m_key_down_token);
             }
+            if (m_interaction_tracker_owner)
+                get_self<InteractionTrackerOwner>(m_interaction_tracker_owner)->detach();
+            if (m_interaction_tracker) m_interaction_tracker.InteractionSources().RemoveAll();
+            m_visual_interaction_source = nullptr;
+            m_interaction_tracker = nullptr;
+            m_interaction_tracker_owner = nullptr;
+            auto const control = static_cast<UIElement>(*this);
+            control.KeyDown(m_key_down_token);
+            control.GotFocus(m_got_focus_token);
+            control.LostFocus(m_lost_focus_token);
             if (m_scrollbar) m_scrollbar.ValueChanged(m_vertical_scroll_token);
             if (m_horizontal_scrollbar) m_horizontal_scrollbar.ValueChanged(m_horizontal_scroll_token);
             for (auto const& [id, _] : m_external_requests) m_page_canceled(id);
@@ -533,6 +567,88 @@ namespace winrt::VelocityGrid_Native::implementation
         Grid::SetRow(m_diagnostics, 0);
         Grid::SetColumnSpan(m_diagnostics, 2);
         m_root.Children().Append(m_diagnostics);
+    }
+
+    void VelocityGrid::initialize_scroll_interaction()
+    {
+        if (m_interaction_tracker || m_shutdown) return;
+
+        using namespace Microsoft::UI::Composition::Interactions;
+        auto const visual = Microsoft::UI::Xaml::Hosting::ElementCompositionPreview::GetElementVisual(m_root);
+
+        m_interaction_tracker_owner = make<InteractionTrackerOwner>(this);
+        m_interaction_tracker = InteractionTracker::CreateWithOwner(
+            visual.Compositor(), m_interaction_tracker_owner);
+
+        m_visual_interaction_source = VisualInteractionSource::Create(visual);
+        m_visual_interaction_source.PositionXSourceMode(InteractionSourceMode::Disabled);
+        m_visual_interaction_source.PositionYSourceMode(InteractionSourceMode::EnabledWithInertia);
+        m_visual_interaction_source.ScaleSourceMode(InteractionSourceMode::Disabled);
+        m_visual_interaction_source.PositionXChainingMode(InteractionChainingMode::Never);
+        m_visual_interaction_source.PositionYChainingMode(InteractionChainingMode::Never);
+        m_visual_interaction_source.ScaleChainingMode(InteractionChainingMode::Never);
+        m_visual_interaction_source.IsPositionYRailsEnabled(true);
+        m_visual_interaction_source.ManipulationRedirectionMode(
+            VisualInteractionSourceRedirectionMode::CapableTouchpadAndPointerWheel);
+        m_visual_interaction_source.PointerWheelConfig().PositionXSourceMode(
+            InteractionSourceRedirectionMode::Disabled);
+        m_visual_interaction_source.PointerWheelConfig().PositionYSourceMode(
+            InteractionSourceRedirectionMode::Enabled);
+        m_visual_interaction_source.PointerWheelConfig().ScaleSourceMode(
+            InteractionSourceRedirectionMode::Disabled);
+
+        m_interaction_tracker.InteractionSources().Add(m_visual_interaction_source);
+        sync_scroll_interaction_position();
+    }
+
+    void VelocityGrid::update_scroll_interaction_bounds()
+    {
+        if (!m_interaction_tracker) return;
+        auto const maximum = velocity_grid::clamp_scroll_offset(
+            m_row_count, m_row_height, m_height, DBL_MAX);
+        m_interaction_window = velocity_grid::calculate_interaction_window(
+            maximum, m_scroll_offset);
+        m_interaction_tracker.MinPosition({ 0.0f, 0.0f, 0.0f });
+        m_interaction_tracker.MaxPosition({ 0.0f, m_interaction_window.maximum, 0.0f });
+    }
+
+    void VelocityGrid::sync_scroll_interaction_position()
+    {
+        if (!m_interaction_tracker || m_updating_from_interaction_tracker) return;
+        update_scroll_interaction_bounds();
+        auto const tracker_y = static_cast<double>(m_interaction_tracker.Position().y);
+        if (std::abs(tracker_y - m_interaction_window.position) < 0.01) return;
+        m_interaction_tracker.TryUpdatePosition(
+            { 0.0f, m_interaction_window.position, 0.0f });
+    }
+
+    void VelocityGrid::on_interaction_tracker_values_changed(
+        Microsoft::UI::Composition::Interactions::InteractionTrackerValuesChangedArgs const& args)
+    {
+        if (m_shutdown) return;
+        auto const previous = m_scroll_offset;
+        auto const next = velocity_grid::clamp_scroll_offset(
+            m_row_count, m_row_height, m_height,
+            velocity_grid::logical_offset_from_interaction(
+                m_interaction_window, args.Position().y));
+        if (std::abs(next - previous) < 0.01) return;
+
+        ++m_wheel_event_count;
+        m_last_wheel_delta = static_cast<std::int32_t>(std::lround(next - previous));
+        m_scroll_offset = next;
+        m_updating_from_interaction_tracker = true;
+        auto const old_slider_value = m_scrollbar.Value();
+        m_scrollbar.Value(next);
+        m_updating_from_interaction_tracker = false;
+        if (old_slider_value == next) update_viewport();
+    }
+
+    void VelocityGrid::on_interaction_tracker_idle()
+    {
+        // Rebase only after inertia is complete. Pointer-wheel and touchpad deltas
+        // therefore retain their natural DIP scale while the local float never
+        // grows large enough to lose row-level precision.
+        sync_scroll_interaction_position();
     }
 
     void VelocityGrid::create_device_resources()
@@ -725,6 +841,14 @@ namespace winrt::VelocityGrid_Native::implementation
         m_d2d_context->DrawLine({ 0.0f, static_cast<float>(header_height) },
             { static_cast<float>(m_width), static_cast<float>(header_height) }, m_line_brush.Get(), 1.0f);
 
+        // The first and last rows may be only partially visible at a fractional
+        // scroll offset. Keep all row backgrounds, glyphs, text, selection, and
+        // grid lines inside the data viewport so they can never paint over the
+        // fixed column header.
+        m_d2d_context->PushAxisAlignedClip(
+            { 0.0f, static_cast<float>(header_height), static_cast<float>(m_width),
+                static_cast<float>((std::max)(header_height, m_surface_height)) },
+            D2D1_ANTIALIAS_MODE_ALIASED);
         for (std::int32_t visible = 0; visible < m_viewport.visible_row_count; ++visible)
         {
             auto const row = m_viewport.first_row + visible;
@@ -793,6 +917,7 @@ namespace winrt::VelocityGrid_Native::implementation
                     m_d2d_context->DrawRectangle({ left + 1.0f, top + 1.0f, right - 1.0f, bottom - 1.0f }, m_focus_brush.Get(), 2.0f);
             }
         }
+        m_d2d_context->PopAxisAlignedClip();
 
         auto const result = m_d2d_context->EndDraw();
         if (result == D2DERR_RECREATE_TARGET)
@@ -836,6 +961,7 @@ namespace winrt::VelocityGrid_Native::implementation
         m_scrollbar.StepFrequency(m_row_height * 3.0);
         m_scroll_offset = (std::min)(m_scroll_offset, maximum);
         m_scrollbar.Value(m_scroll_offset);
+        sync_scroll_interaction_position();
 
         auto const total_width = std::accumulate(m_columns.begin(), m_columns.end(), 0.0,
             [](double const total, column_definition const& column) { return total + column.width; });
@@ -950,9 +1076,15 @@ namespace winrt::VelocityGrid_Native::implementation
         create_size_dependent_resources(m_width, m_surface_height);
     }
 
+    void VelocityGrid::on_loaded(IInspectable const&, RoutedEventArgs const&)
+    {
+        initialize_scroll_interaction();
+    }
+
     void VelocityGrid::on_scroll(IInspectable const&, RangeBaseValueChangedEventArgs const& args)
     {
         m_scroll_offset = args.NewValue();
+        sync_scroll_interaction_position();
         update_viewport();
     }
 
@@ -960,16 +1092,6 @@ namespace winrt::VelocityGrid_Native::implementation
     {
         m_horizontal_offset = args.NewValue();
         render();
-    }
-
-    void VelocityGrid::on_pointer_wheel(IInspectable const&, Input::PointerRoutedEventArgs const& args)
-    {
-        auto const delta = args.GetCurrentPoint(m_root).Properties().MouseWheelDelta();
-        m_scroll_offset -= (static_cast<double>(delta) / 120.0) * m_row_height * 3.0;
-        m_scroll_offset = velocity_grid::clamp_scroll_offset(m_row_count, m_row_height, m_height, m_scroll_offset);
-        m_scrollbar.Value(m_scroll_offset);
-        update_viewport();
-        args.Handled(true);
     }
 
     std::int32_t VelocityGrid::column_at(double const x) const noexcept
@@ -1024,11 +1146,22 @@ namespace winrt::VelocityGrid_Native::implementation
         auto const column = column_at(position.X + m_horizontal_offset);
         if (row >= 0 && row < m_row_count && column >= 0)
         {
-            m_has_focus = true;
-            m_scrollbar.Focus(FocusState::Pointer);
+            static_cast<Control>(*this).Focus(FocusState::Pointer);
             select_cell(row, column);
             args.Handled(true);
         }
+    }
+
+    void VelocityGrid::on_got_focus(IInspectable const&, RoutedEventArgs const&)
+    {
+        m_has_focus = true;
+        render();
+    }
+
+    void VelocityGrid::on_lost_focus(IInspectable const&, RoutedEventArgs const&)
+    {
+        m_has_focus = false;
+        render();
     }
 
     void VelocityGrid::on_key_down(IInspectable const&, Input::KeyRoutedEventArgs const& args)
@@ -1065,8 +1198,9 @@ namespace winrt::VelocityGrid_Native::implementation
         auto const stale = m_external_provider_enabled ? m_external_stale : metrics.stale;
         auto const error = m_last_provider_error.empty() ? L"" : std::format(L" | Error {}", m_last_provider_error.c_str());
         m_diagnostics.Text(std::format(
-            L"Viewport {:L}-{:L} | Cache {}/{} ({:.0f}%) | Requests {} | Canceled {} | Stale {} | Failed {} | {:.1f} FPS{}",
-            m_viewport.first_row, m_viewport.last_row, m_cache.size(), m_cache.capacity(), hit_rate,
+            L"Viewport {:L}-{:L} | Wheel {} ({:+}) | Cache {}/{} ({:.0f}%) | Requests {} | Canceled {} | Stale {} | Failed {} | {:.1f} FPS{}",
+            m_viewport.first_row, m_viewport.last_row, m_wheel_event_count, m_last_wheel_delta,
+            m_cache.size(), m_cache.capacity(), hit_rate,
             requested, canceled, stale, m_external_failed, fps, error));
         if (elapsed >= 1.0)
         {

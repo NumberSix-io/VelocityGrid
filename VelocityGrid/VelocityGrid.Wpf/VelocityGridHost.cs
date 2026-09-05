@@ -1,3 +1,4 @@
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Hosting;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,12 @@ namespace VelocityGrid.Wpf;
 /// <summary>Hosts the WinUI VelocityGrid control inside an ordinary WPF visual tree.</summary>
 public sealed class VelocityGridHost : HwndHost
 {
+    [ThreadStatic]
+    private static DispatcherQueueController? s_dispatcherQueueController;
+    [ThreadStatic]
+    private static int s_dispatcherQueueLeaseCount;
+
+    private bool _hasDispatcherQueueLease;
     private WindowsXamlManager? _xamlManager;
     private DesktopWindowXamlSource? _xamlSource;
     private nint _islandWindow;
@@ -76,17 +83,32 @@ public sealed class VelocityGridHost : HwndHost
         Grid.InvalidateRows(startRow, rowCount);
     }
 
+    /// <summary>Applies caller-owned values and visual formatting to cached cells.</summary>
+    public void ApplyUpdates(IEnumerable<VelocityGridCellUpdate> updates)
+    {
+        if (Grid is null) throw new InvalidOperationException("The grid is available after the host raises GridReady.");
+        Grid.ApplyUpdates(updates);
+    }
+
     /// <inheritdoc />
     protected override HandleRef BuildWindowCore(HandleRef hwndParent)
     {
         if (DesignerProperties.GetIsInDesignMode(this))
             return new HandleRef(this, hwndParent.Handle);
 
+        // WPF's dispatcher does not provide the WinUI DispatcherQueue required
+        // by XAML Islands. Own one only when the application has not supplied it.
+        if (s_dispatcherQueueLeaseCount++ == 0 && DispatcherQueue.GetForCurrentThread() is null)
+            s_dispatcherQueueController = DispatcherQueueController.CreateOnCurrentThread();
+        _hasDispatcherQueueLease = true;
+
         _xamlManager = WindowsXamlManager.InitializeForCurrentThread();
         _xamlSource = new DesktopWindowXamlSource();
-        var native = (IDesktopWindowXamlSourceNative)_xamlSource;
-        native.AttachToWindow(hwndParent.Handle);
-        _islandWindow = native.WindowHandle;
+        // WinUI 3 XAML Islands attach through WindowId. The legacy
+        // IDesktopWindowXamlSourceNative interface belongs to UWP XAML and is
+        // deliberately not implemented by the Windows App SDK projection.
+        _xamlSource.Initialize(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwndParent.Handle));
+        _islandWindow = Microsoft.UI.Win32Interop.GetWindowFromWindowId(_xamlSource.SiteBridge.WindowId);
 
         Grid = new VelocityGridControl { RowHeight = _rowHeight };
         if (_columns is not null) Grid.SetColumns(_columns);
@@ -105,6 +127,15 @@ public sealed class VelocityGridHost : HwndHost
         _xamlSource = null;
         _xamlManager?.Dispose();
         _xamlManager = null;
+        if (_hasDispatcherQueueLease)
+        {
+            _hasDispatcherQueueLease = false;
+            if (--s_dispatcherQueueLeaseCount == 0)
+            {
+                s_dispatcherQueueController?.ShutdownQueue();
+                s_dispatcherQueueController = null;
+            }
+        }
         _islandWindow = 0;
     }
 
@@ -116,15 +147,6 @@ public sealed class VelocityGridHost : HwndHost
             SetWindowPos(_islandWindow, 0, 0, 0,
                 Math.Max(1, (int)rcBoundingBox.Width), Math.Max(1, (int)rcBoundingBox.Height),
                 SetWindowPosFlags.NoActivate | SetWindowPosFlags.NoZOrder | SetWindowPosFlags.ShowWindow);
-    }
-
-    [ComImport]
-    [Guid("3CBCF1BF-2F76-4E9C-96AB-E84B37972554")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IDesktopWindowXamlSourceNative
-    {
-        void AttachToWindow(nint parentWindow);
-        nint WindowHandle { get; }
     }
 
     [Flags]

@@ -75,7 +75,7 @@ namespace VelocityGrid_Native
     [global::WinRT.WindowsRuntimeHelperType(typeof(global::ABI.VelocityGrid_Native.VelocityGrid))]
     [global::ABI.VelocityGrid_Native.VelocityGridRcwFactory]
     [global::WinRT.ProjectedRuntimeClass(typeof(IVelocityGrid))]
-    public sealed class VelocityGrid : global::System.Runtime.InteropServices.ICustomQueryInterface, IWinRTObject, IEquatable<VelocityGrid>
+    public sealed class VelocityGrid : global::Microsoft.UI.Xaml.Controls.UserControl, global::System.Runtime.InteropServices.ICustomQueryInterface, IWinRTObject, IEquatable<VelocityGrid>
     {
         private IntPtr ThisPtr => _inner == null ? (((IWinRTObject)this).NativeObject).ThisPtr : _inner.ThisPtr;
 
@@ -103,7 +103,7 @@ namespace VelocityGrid_Native
             }
         }
 
-        public VelocityGrid() 
+        public VelocityGrid() :base(global::WinRT.DerivedComposed.Instance)
         {
             _inner = global::ABI.WinRT.Interop.IActivationFactoryMethods.ActivateInstanceUnsafe(_objRef_global__VelocityGrid_Native_VelocityGrid, global::ABI.VelocityGrid_Native.IVelocityGridMethods.IID);
             ComWrappersSupport.RegisterObjectForInterface(this, ThisPtr);
@@ -111,13 +111,15 @@ namespace VelocityGrid_Native
 
         }
 
-        public static VelocityGrid FromAbi(IntPtr thisPtr)
+        public static new VelocityGrid FromAbi(IntPtr thisPtr)
         {
             if (thisPtr == IntPtr.Zero) return null;
             return MarshalInspectable<VelocityGrid>.FromAbi(thisPtr);
         }
 
         internal VelocityGrid(IObjectReference objRef)
+            : base(global::WinRT.DerivedComposed.Instance)
+
         {
             _inner = objRef.As(global::ABI.VelocityGrid_Native.IVelocityGridMethods.IID);
 
@@ -133,20 +135,6 @@ namespace VelocityGrid_Native
 
         bool IWinRTObject.HasUnwrappableNativeObject => true;
         IObjectReference IWinRTObject.NativeObject => _inner;
-        private volatile global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, IObjectReference> _queryInterfaceCache;
-        private global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, IObjectReference> MakeQueryInterfaceCache()
-        {
-            global::System.Threading.Interlocked.CompareExchange(ref _queryInterfaceCache, new global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, IObjectReference>(), null); 
-            return _queryInterfaceCache;
-        }
-        global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, IObjectReference> IWinRTObject.QueryInterfaceCache => _queryInterfaceCache ?? MakeQueryInterfaceCache();
-        private volatile global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, object> _additionalTypeData;
-        private global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, object> MakeAdditionalTypeData()
-        {
-            global::System.Threading.Interlocked.CompareExchange(ref _additionalTypeData, new global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, object>(), null); 
-            return _additionalTypeData;
-        }
-        global::System.Collections.Concurrent.ConcurrentDictionary<RuntimeTypeHandle, object> IWinRTObject.AdditionalTypeData => _additionalTypeData ?? MakeAdditionalTypeData();
 
         private struct InterfaceTag<I>{};
 
@@ -245,7 +233,7 @@ namespace VelocityGrid_Native
             set => global::ABI.VelocityGrid_Native.IVelocityGridMethods.set_VisualTheme(_objRef_global__VelocityGrid_Native_IVelocityGrid, value);
         }
 
-        private bool IsOverridableInterface(Guid iid) => false;
+        protected override bool IsOverridableInterface(Guid iid) => base.IsOverridableInterface(iid);
 
         global::System.Runtime.InteropServices.CustomQueryInterfaceResult global::System.Runtime.InteropServices.ICustomQueryInterface.GetInterface(ref Guid iid, out IntPtr ppv)
         {

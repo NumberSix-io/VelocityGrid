@@ -16,12 +16,9 @@
   <file src="..\VelocityGrid.Native\x64\Release\VelocityGrid.Native\VelocityGrid.Native.dll" target="runtimes\win-x64\native" />
   <file src="..\VelocityGrid.Native\Release\VelocityGrid.Native\VelocityGrid.Native.dll" target="runtimes\win-x86\native" />
   <file src="..\VelocityGrid.Native\ARM64\Release\VelocityGrid.Native\VelocityGrid.Native.dll" target="runtimes\win-arm64\native" />
-  <file src="..\VelocityGrid.Native\x64\Release\VelocityGrid.Native\VelocityGrid_Native.pri" target="runtimes\win-x64\native" />
-  <file src="..\VelocityGrid.Native\Release\VelocityGrid.Native\VelocityGrid_Native.pri" target="runtimes\win-x86\native" />
-  <file src="..\VelocityGrid.Native\ARM64\Release\VelocityGrid.Native\VelocityGrid_Native.pri" target="runtimes\win-arm64\native" />
   <file src="..\VelocityGrid.Native\Generated Files\winrt\VelocityGrid_Native.h" target="buildTransitive\include\winrt" />
   <file src="..\VelocityGrid.Native\Generated Files\winrt\impl\VelocityGrid_Native.*.h" target="buildTransitive\include\winrt\impl" />
-  <file src="buildTransitive\VelocityGrid.Native.WinUI.props" target="buildTransitive" /><file src="buildTransitive\VelocityGrid.Native.WinUI.targets" target="buildTransitive" />
-  <file src="buildTransitive\VelocityGrid.Native.WinUI.props" target="build\native" /><file src="buildTransitive\VelocityGrid.Native.WinUI.targets" target="build\native" />
+  <file src="buildTransitive\VelocityGrid.Native.WinUI.props" target="buildTransitive" /><file src="buildTransitive\VelocityGrid.Native.WinUI.targets" target="buildTransitive" /><file src="buildTransitive\VelocityGrid.Native.WinUI.manifest" target="buildTransitive" />
+  <file src="buildTransitive\VelocityGrid.Native.WinUI.props" target="build\native" /><file src="buildTransitive\VelocityGrid.Native.WinUI.targets" target="build\native" /><file src="buildTransitive\VelocityGrid.Native.WinUI.manifest" target="build\native" />
   <file src="..\..\NUGET_README.md" target="README.md" /><file src="..\..\LICENSE" />
 </files></package>

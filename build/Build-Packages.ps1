@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.1.0-preview.1",
+    [string]$Version = "0.1.0-preview.7",
     [string]$Configuration = "Release"
 )
 
@@ -40,7 +40,9 @@ dotnet build (Join-Path $solutionDirectory "PackageTests\CSharp.WinUI\CSharp.Win
 if ($LASTEXITCODE -ne 0) { throw "C# package consumer failed." }
 dotnet build (Join-Path $solutionDirectory "PackageTests\Wpf\Wpf.csproj") -c $Configuration --no-cache "/p:VelocityGridPackageVersion=$Version" "/p:RestorePackagesPath=$consumerPackageCache"
 if ($LASTEXITCODE -ne 0) { throw "WPF package consumer failed." }
-& $msbuild (Join-Path $solutionDirectory "PackageTests\Cpp.WinUI\Cpp.WinUI.vcxproj") /m:1 /nr:false /t:Restore,Rebuild /p:Configuration=Release /p:Platform=x64 "/p:VelocityGridPackageVersion=$Version" "/p:RestorePackagesPath=$consumerPackageCache" /v:minimal
+& $msbuild (Join-Path $solutionDirectory "PackageTests\Cpp.WinUI\Cpp.WinUI.vcxproj") /m:1 /nr:false /t:Restore /p:Configuration=Release /p:Platform=x64 "/p:VelocityGridPackageVersion=$Version" "/p:RestorePackagesPath=$consumerPackageCache" /v:minimal
+if ($LASTEXITCODE -ne 0) { throw "C++ package consumer restore failed." }
+& $msbuild (Join-Path $solutionDirectory "PackageTests\Cpp.WinUI\Cpp.WinUI.vcxproj") /m:1 /nr:false /t:Rebuild /p:Configuration=Release /p:Platform=x64 "/p:VelocityGridPackageVersion=$Version" "/p:RestorePackagesPath=$consumerPackageCache" /v:minimal
 if ($LASTEXITCODE -ne 0) { throw "C++ package consumer failed." }
 
 Write-Host "VelocityGrid packages $Version are in VelocityGrid\artifacts\packages."

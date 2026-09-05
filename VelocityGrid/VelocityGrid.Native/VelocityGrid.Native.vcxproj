@@ -15,7 +15,9 @@
     <RootNamespace>VelocityGrid_Native</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
-    <AppContainerApplication>true</AppContainerApplication>
+    <!-- Build a desktop-compatible WinRT component. AppContainer-only CRT
+         imports cannot be loaded by unpackaged WPF and WinUI processes. -->
+    <AppContainerApplication>false</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
     <WindowsTargetPlatformVersion Condition=" '$(WindowsTargetPlatformVersion)' == '' ">10.0.19041.0</WindowsTargetPlatformVersion>
@@ -131,6 +133,7 @@
     <ClInclude Include="Cache\PageCache.h" />
     <ClInclude Include="Data\Page.h" />
     <ClInclude Include="Data\RequestScheduler.h" />
+    <ClInclude Include="Input\InteractionTrackerOwner.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -142,6 +145,7 @@
     <ClCompile Include="Viewport\ViewportEngine.cpp" />
     <ClCompile Include="Cache\PageCache.cpp" />
     <ClCompile Include="Data\RequestScheduler.cpp" />
+    <ClCompile Include="Input\InteractionTrackerOwner.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
   </ItemGroup>
   <ItemGroup>

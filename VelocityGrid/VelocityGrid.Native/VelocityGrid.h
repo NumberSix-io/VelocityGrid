@@ -17,6 +17,8 @@
 
 namespace winrt::VelocityGrid_Native::implementation
 {
+    struct InteractionTrackerOwner;
+
     // Native host for the small WinUI chrome and immediate-mode grid surface. All
     // methods are UI-thread-affine except work encapsulated by request_scheduler.
     struct VelocityGrid : VelocityGridT<VelocityGrid>
@@ -73,7 +75,15 @@ namespace winrt::VelocityGrid_Native::implementation
         std::uint64_t LastUpdateLatencyMicroseconds() const noexcept;
 
     private:
+        friend struct InteractionTrackerOwner;
+
         void build_visual_tree();
+        void initialize_scroll_interaction();
+        void update_scroll_interaction_bounds();
+        void sync_scroll_interaction_position();
+        void on_interaction_tracker_values_changed(
+            Microsoft::UI::Composition::Interactions::InteractionTrackerValuesChangedArgs const& args);
+        void on_interaction_tracker_idle();
         void create_device_resources();
         void update_theme_resources();
         void recover_device_resources() noexcept;
@@ -85,11 +95,13 @@ namespace winrt::VelocityGrid_Native::implementation
         void schedule_pages();
         void process_completions();
         void on_size_changed(IInspectable const&, Microsoft::UI::Xaml::SizeChangedEventArgs const& args);
+        void on_loaded(IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void on_scroll(IInspectable const&, Microsoft::UI::Xaml::Controls::Primitives::RangeBaseValueChangedEventArgs const& args);
         void on_horizontal_scroll(IInspectable const&, Microsoft::UI::Xaml::Controls::Primitives::RangeBaseValueChangedEventArgs const& args);
-        void on_pointer_wheel(IInspectable const&, Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& args);
         void on_pointer_pressed(IInspectable const&, Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& args);
         void on_key_down(IInspectable const&, Microsoft::UI::Xaml::Input::KeyRoutedEventArgs const& args);
+        void on_got_focus(IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void on_lost_focus(IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void on_tick(IInspectable const&, IInspectable const&);
         void on_render_tick(IInspectable const&, IInspectable const&);
         [[nodiscard]] std::int32_t column_at(double x) const noexcept;
@@ -150,9 +162,11 @@ namespace winrt::VelocityGrid_Native::implementation
         Microsoft::UI::Xaml::DispatcherTimer m_timer{ nullptr };
         Microsoft::UI::Xaml::DispatcherTimer m_render_timer{ nullptr };
         winrt::event_token m_size_changed_token{};
-        winrt::event_token m_pointer_wheel_token{};
+        winrt::event_token m_loaded_token{};
         winrt::event_token m_pointer_pressed_token{};
         winrt::event_token m_key_down_token{};
+        winrt::event_token m_got_focus_token{};
+        winrt::event_token m_lost_focus_token{};
         winrt::event_token m_vertical_scroll_token{};
         winrt::event_token m_horizontal_scroll_token{};
         winrt::event_token m_timer_token{};
@@ -164,6 +178,13 @@ namespace winrt::VelocityGrid_Native::implementation
         std::uint64_t m_update_cell_count{};
         std::uint64_t m_update_render_count{};
         std::uint64_t m_last_update_latency_microseconds{};
+        std::uint64_t m_wheel_event_count{};
+        std::int32_t m_last_wheel_delta{};
+        bool m_updating_from_interaction_tracker{};
+        velocity_grid::interaction_window m_interaction_window{};
+        Microsoft::UI::Composition::Interactions::IInteractionTrackerOwner m_interaction_tracker_owner{ nullptr };
+        Microsoft::UI::Composition::Interactions::InteractionTracker m_interaction_tracker{ nullptr };
+        Microsoft::UI::Composition::Interactions::VisualInteractionSource m_visual_interaction_source{ nullptr };
 
         ::Microsoft::WRL::ComPtr<ID3D11Device> m_d3d_device;
         ::Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_d3d_context;

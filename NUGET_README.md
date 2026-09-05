@@ -13,7 +13,16 @@ Use a concrete Windows architecture: `x64`, `x86`, or `ARM64`.
 ## C# WinUI 3
 
 ```xml
-<PackageReference Include="VelocityGrid.WinUI" Version="0.1.0-preview.1" />
+<PropertyGroup>
+  <UseWinUI>true</UseWinUI>
+  <WindowsPackageType>None</WindowsPackageType>
+  <ApplicationManifest>app.manifest</ApplicationManifest>
+  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+</PropertyGroup>
+<ItemGroup>
+  <PackageReference Include="VelocityGrid.WinUI" Version="0.1.0-preview.7" />
+  <Manifest Include="$(ApplicationManifest)" />
+</ItemGroup>
 ```
 
 ```xml
@@ -24,12 +33,14 @@ Use a concrete Windows architecture: `x64`, `x86`, or `ARM64`.
 
 Configure columns and supply pages through `IVelocityGridDataProvider`. The managed package installs the correct native runtime transitively.
 
+The self-contained setting above is the recommended Microsoft-style deployment for an unpackaged executable: WinUI, composition, and pointer input are deployed as one matching Windows App SDK graph. Packaged applications should retain their package deployment model instead.
+
 Columns can carry stable application keys for column chooser projections. Provider requests receive the exact immutable column snapshot. For changing datasets, use `NotifyDataChanged`, `Refresh`, or targeted `InvalidateRows`; the caller remains responsible for updating its provider snapshot before notifying the grid.
 
 ## WPF
 
 ```xml
-<PackageReference Include="VelocityGrid.Wpf" Version="0.1.0-preview.1" />
+<PackageReference Include="VelocityGrid.Wpf" Version="0.1.0-preview.7" />
 ```
 
 ```xml

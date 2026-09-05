@@ -5,7 +5,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration"><ConfigurationType>StaticLibrary</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet></PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <PropertyGroup><RestoreSources>$(MSBuildThisFileDirectory)..\..\artifacts\packages;https://api.nuget.org/v3/index.json</RestoreSources><VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.1</VelocityGridPackageVersion><OutDir>$(MSBuildThisFileDirectory)bin\</OutDir><IntDir>$(MSBuildThisFileDirectory)obj\</IntDir></PropertyGroup>
+  <PropertyGroup><RestoreSources>$(MSBuildThisFileDirectory)..\..\artifacts\packages;https://api.nuget.org/v3/index.json</RestoreSources><VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.7</VelocityGridPackageVersion><OutDir>$(MSBuildThisFileDirectory)bin\</OutDir><IntDir>$(MSBuildThisFileDirectory)obj\</IntDir></PropertyGroup>
   <ItemDefinitionGroup><ClCompile><LanguageStandard>stdcpp20</LanguageStandard><WarningLevel>Level4</WarningLevel></ClCompile></ItemDefinitionGroup>
   <ItemGroup><ClCompile Include="PackageSmoke.cpp" /></ItemGroup>
   <ItemGroup>

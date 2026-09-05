@@ -1,6 +1,48 @@
 # Changelog
 
+## Unreleased
+
+- Route native wheel and touchpad scrolling through a `ScrollPresenter`-style composition interaction source.
+- Preserve sub-row scrolling precision across ten million rows with a bounded floating-origin interaction window.
+- Document the standard manifest and self-contained Windows App SDK requirements for unpackaged C# WinUI hosts.
+- Add ten-million-row precision and bounded-working-set regression tests.
+
+## [0.1.0-preview.7] - 2026-09-04
+
+- Defer managed native-view creation until after parent XAML parsing completes.
+- Add an explicit default-interface creation export for unpackaged managed hosts.
+- Preserve pre-load row, column, provider, and row-height configuration.
+
+## [0.1.0-preview.6] - 2026-09-03
+
+- Fix WinUI control construction after adding managed mouse-wheel routing.
+
+## [0.1.0-preview.5] - 2026-09-03
+
+- Fix mouse-wheel scrolling when the WinUI grid is hosted through the managed C# `UserControl` wrapper.
+
 All notable changes to VelocityGrid are documented here. Versions follow Semantic Versioning.
+
+## [0.1.0-preview.4] - 2026-09-03
+
+### Fixed
+
+- Embedded registration-free WinRT activation metadata into native C++ application manifests.
+
+## [0.1.0-preview.3] - 2026-09-03
+
+### Fixed
+
+- Attached WinUI 3 XAML Islands through the supported `WindowId` hosting API instead of the legacy UWP native interface.
+- Registered the native WinRT activation factory in managed host processes and built the native component against the desktop Visual C++ runtime.
+
+## [0.1.0-preview.2] - 2026-09-03
+
+### Fixed
+
+- Enabled Windows App SDK bootstrap initialization reliably for unpackaged WPF consumers.
+- Added automatic WinUI `DispatcherQueue` creation and lifetime management to the WPF host.
+- Declared explicit project platforms so Visual Studio maps solution configurations correctly.
 
 ## [0.1.0-preview.1] - 2026-09-01
 
@@ -19,3 +61,9 @@ First public preview.
 - Package-only C# WinUI, WPF, and C++/WinRT validation consumers.
 
 [0.1.0-preview.1]: https://github.com/NumberSix-io/VelocityGrid/releases/tag/v0.1.0-preview.1
+[0.1.0-preview.2]: https://github.com/NumberSix-io/VelocityGrid/releases/tag/v0.1.0-preview.2
+[0.1.0-preview.3]: https://github.com/NumberSix-io/VelocityGrid/releases/tag/v0.1.0-preview.3
+[0.1.0-preview.4]: https://github.com/NumberSix-io/VelocityGrid/releases/tag/v0.1.0-preview.4
+[0.1.0-preview.5]: https://github.com/NumberSix-io/VelocityGrid/releases/tag/v0.1.0-preview.5
+[0.1.0-preview.6]: https://github.com/NumberSix-io/VelocityGrid/releases/tag/v0.1.0-preview.6
+[0.1.0-preview.7]: https://github.com/NumberSix-io/VelocityGrid/releases/tag/v0.1.0-preview.7

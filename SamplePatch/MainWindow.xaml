@@ -1,0 +1,22 @@
+<Window
+    x:Class="VelocityGrid.Sample.WinUI.CSharp.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vg="using:VelocityGrid.Managed"
+    Title="VelocityGrid — C# WinUI NuGet sample">
+    <Grid Padding="16" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="Append 1,000" Click="Append_Click"/>
+            <Button Content="Invalidate rows 0–127" Click="Invalidate_Click"/>
+            <Button Content="Sort / refresh" Click="Refresh_Click"/>
+            <Button Content="Toggle columns" Click="Columns_Click"/>
+            <Button Content="Jump near end" Click="End_Click"/>
+            <TextBlock x:Name="Status" VerticalAlignment="Center" Margin="12,0,0,0"/>
+        </StackPanel>
+        <vg:VelocityGridControl x:Name="TradesGrid" Grid.Row="1"/>
+    </Grid>
+</Window>

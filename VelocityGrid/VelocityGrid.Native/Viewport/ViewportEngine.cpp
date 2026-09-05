@@ -62,4 +62,40 @@ namespace velocity_grid
         result.has_partial_last_row = std::fmod(trailing_edge, row_height) > 0.0001 && result.last_row < row_count;
         return result;
     }
+
+    interaction_window calculate_interaction_window(
+        double const maximum_offset,
+        double const current_offset) noexcept
+    {
+        interaction_window result{};
+        if (!(maximum_offset > 0.0) || !std::isfinite(maximum_offset))
+        {
+            return result;
+        }
+
+        auto const current = std::isfinite(current_offset)
+            ? (std::clamp)(current_offset, 0.0, maximum_offset)
+            : (current_offset > 0.0 ? maximum_offset : 0.0);
+        auto const half_window = interaction_window_extent / 2.0;
+        auto const maximum_origin = (std::max)(0.0, maximum_offset - interaction_window_extent);
+        result.origin = (std::clamp)(current - half_window, 0.0, maximum_origin);
+
+        auto const local_maximum = (std::min)(
+            interaction_window_extent, maximum_offset - result.origin);
+        result.maximum = static_cast<float>(local_maximum);
+        result.position = static_cast<float>((std::clamp)(
+            current - result.origin, 0.0, local_maximum));
+        return result;
+    }
+
+    double logical_offset_from_interaction(
+        interaction_window const& window,
+        float const interaction_position) noexcept
+    {
+        auto const local = std::isfinite(interaction_position)
+            ? (std::clamp)(static_cast<double>(interaction_position), 0.0,
+                static_cast<double>(window.maximum))
+            : 0.0;
+        return window.origin + local;
+    }
 }

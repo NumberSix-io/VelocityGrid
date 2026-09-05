@@ -1,6 +1,10 @@
 <Project>
   <!-- Unpackaged WPF executables need the Windows App SDK bootstrap initializer. -->
-  <PropertyGroup Condition="'$(UseWPF)' == 'true' and ('$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe') and '$(WindowsPackageType)' == ''">
+  <!-- NuGet .props files are evaluated before the consuming project body, so
+       UseWPF and OutputType are not reliable here. This package is WPF-only;
+       setting the default unconditionally lets the Windows App SDK targets
+       decide later whether an executable needs the bootstrap initializer. -->
+  <PropertyGroup Condition="'$(WindowsPackageType)' == ''">
     <WindowsPackageType>None</WindowsPackageType>
   </PropertyGroup>
 </Project>

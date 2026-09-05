@@ -6,7 +6,7 @@ VelocityGrid publishes three packages at exactly the same version. Publish them 
 2. `VelocityGrid.WinUI`
 3. `VelocityGrid.Wpf`
 
-The first public release is `0.1.0-preview.1`. NuGet versions are immutable: never rebuild or replace a version after uploading it. If a correction is needed, increment the version.
+NuGet versions are immutable: never rebuild or replace a version after uploading it. If a correction is needed, increment the version. The current release candidate is `0.1.0-preview.7`.
 
 ## One-time account setup
 
@@ -31,7 +31,7 @@ NuGet.org Trusted Publishing is preferable when it is available for the account 
 3. Run the complete package build from the repository root:
 
    ```powershell
-   ./build/Build-Packages.ps1 -Version 0.1.0-preview.1
+   ./build/Build-Packages.ps1 -Version 0.1.0-preview.7
    ```
 
 4. Confirm that `VelocityGrid/artifacts/packages` contains three `.nupkg` files and two managed `.snupkg` files.
@@ -44,10 +44,10 @@ The repository workflow publishes only tags beginning with `v`.
 
 ```powershell
 git add --all
-git commit -m "Prepare VelocityGrid 0.1.0-preview.1"
+git commit -m "Prepare VelocityGrid 0.1.0-preview.7"
 git push origin main
-git tag -a v0.1.0-preview.1 -m "VelocityGrid 0.1.0-preview.1"
-git push origin v0.1.0-preview.1
+git tag -a v0.1.0-preview.7 -m "VelocityGrid 0.1.0-preview.7"
+git push origin v0.1.0-preview.7
 ```
 
 Pushing the tag starts `.github/workflows/packages.yml`. It rebuilds the packages from the tagged commit, validates all three isolated consumers, then publishes the native package, managed package, WPF package, and managed symbols in dependency order.

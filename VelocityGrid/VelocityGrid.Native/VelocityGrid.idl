@@ -12,7 +12,7 @@ namespace VelocityGrid_Native
     delegate void SelectionChangedHandler(Int64 rowIndex, Int32 columnIndex);
 
     [default_interface]
-    runtimeclass VelocityGrid
+    runtimeclass VelocityGrid : Microsoft.UI.Xaml.Controls.UserControl
     {
         VelocityGrid();
         Int64 RowCount;

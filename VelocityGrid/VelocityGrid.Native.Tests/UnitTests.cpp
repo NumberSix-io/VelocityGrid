@@ -39,6 +39,42 @@ namespace VelocityGrid_Native_Tests
             Assert::AreEqual<std::int64_t>(9'999'999, viewport.last_row);
         }
 
+        TEST_METHOD(InteractionWindowPreservesWheelPrecisionAtTenMillionRows)
+        {
+            constexpr auto row_count = std::int64_t{ 10'000'000 };
+            constexpr auto row_height = 25.0;
+            constexpr auto viewport_height = 900.0;
+            auto const maximum = velocity_grid::clamp_scroll_offset(
+                row_count, row_height, viewport_height, DBL_MAX);
+            auto const target = 9'500'000.0 * row_height + 7.25;
+            auto const window = velocity_grid::calculate_interaction_window(maximum, target);
+
+            Assert::IsTrue(window.maximum <= static_cast<float>(velocity_grid::interaction_window_extent));
+            Assert::IsTrue(window.position <= window.maximum);
+            Assert::AreEqual(target,
+                velocity_grid::logical_offset_from_interaction(window, window.position), 0.125);
+            Assert::AreEqual(target + row_height,
+                velocity_grid::logical_offset_from_interaction(
+                    window, window.position + static_cast<float>(row_height)), 0.125);
+        }
+
+        TEST_METHOD(InteractionWindowReachesTheFinalTenMillionthRow)
+        {
+            constexpr auto row_count = std::int64_t{ 10'000'000 };
+            constexpr auto row_height = 25.0;
+            constexpr auto viewport_height = 900.0;
+            auto const maximum = velocity_grid::clamp_scroll_offset(
+                row_count, row_height, viewport_height, DBL_MAX);
+            auto const window = velocity_grid::calculate_interaction_window(maximum, maximum);
+            auto const logical = velocity_grid::logical_offset_from_interaction(
+                window, window.position);
+            auto const viewport = velocity_grid::calculate_viewport(
+                row_count, row_height, viewport_height, logical);
+
+            Assert::AreEqual(maximum, logical, 0.125);
+            Assert::AreEqual<std::int64_t>(9'999'999, viewport.last_row);
+        }
+
         TEST_METHOD(PageCacheRemainsBoundedAndEvictsLeastRecentlyUsed)
         {
             velocity_grid::page_cache cache(2);
@@ -51,6 +87,20 @@ namespace VelocityGrid_Native_Tests
             Assert::IsTrue(cache.contains_page(0));
             Assert::IsFalse(cache.contains_page(128));
             Assert::IsTrue(cache.contains_page(256));
+        }
+
+        TEST_METHOD(TenMillionRowWorkingSetRemainsEightPages)
+        {
+            constexpr auto page_size = std::int64_t{ 128 };
+            velocity_grid::page_cache cache(8);
+            for (auto start = std::int64_t{}; start < 10'000'000; start += page_size)
+                cache.insert({ start, static_cast<std::int32_t>((std::min)(
+                    page_size, 10'000'000 - start)), 10 });
+
+            Assert::AreEqual<std::size_t>(8, cache.size());
+            Assert::AreEqual<std::size_t>(8, cache.capacity());
+            Assert::IsFalse(cache.contains_page(0));
+            Assert::IsTrue(cache.contains_page(9'999'872));
         }
 
         TEST_METHOD(PageCacheUpdatesCachedCellsInPlace)

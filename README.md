@@ -61,6 +61,8 @@ Select a concrete application architecture (`x64`, `x86`, or `ARM64`); VelocityG
 
 Package consumers do not add project references, run C#/WinRT, or copy native files manually. See the complete [NuGet distribution and consumption guide](docs/nuget-distribution.md).
 
+For an unpackaged C# WinUI executable, use the normal Microsoft host declarations, including an application manifest and `WindowsAppSDKSelfContained=true`. This keeps WinUI, composition, and the Interactive Experiences input binaries on one tested runtime graph; the complete project fragment is in the consumption guide. Packaged applications continue to use their package-declared Windows App Runtime dependency.
+
 ## Use from C# WinUI
 
 ```xml
@@ -189,8 +191,9 @@ Direct2D / DirectWrite    immediate-mode headers and cells
 SwapChainPanel            small WinUI visual tree and scroll controls
 ```
 
-- `VelocityGrid.Native`: WinRT ABI, viewport, scheduler, bounded cache, renderer, diagnostics, theming, and resource recovery.
-- `VelocityGrid.Managed`: provider/control API, cancellation bridge, automation metadata, and theme propagation.
+- `VelocityGrid.Native`: the complete C++/WinRT WinUI control—surface, scrollbars, wheel/pointer/keyboard input, hit testing, selection, viewport, scheduler, bounded cache, renderer, diagnostics, theming, and resource recovery.
+- Wheel and touchpad input use the same composition interaction model as WinUI's `ScrollPresenter`. A fixed-size floating interaction window is rebased around the current logical offset after inertia, retaining sub-DIP input precision across ten million 64-bit-addressed rows without creating a physical scroll canvas.
+- `VelocityGrid.Managed`: a thin provider/API adapter, cancellation bridge, automation metadata, and theme propagation; it does not overlay or forward input to the native control.
 - `VelocityGrid.Wpf`: WPF `HwndHost` and WinUI XAML Island lifecycle adapter.
 - `VelocityGrid.*.Packaging`: independently versioned NuGet package definitions.
 - `PackageTests`: source-independent C# WinUI, WPF, and C++/WinRT package consumers.
@@ -232,6 +235,7 @@ The [design plan](docs/VelocityGrid_Design_and_Development_Plan.md) explains the
 - **Sample executable will not start:** launch/deploy the packaged project; do not run the `.exe` directly.
 - **Native DLL missing:** select x64, x86, or ARM64 and restore the appropriate VelocityGrid package; do not use AnyCPU for the executable.
 - **C++ package targets missing:** restore NuGet and install the C++/WinRT/Windows App SDK workloads.
+- **Pointer wheel does not affect any control in an unpackaged app:** verify the executable uses its standard `app.manifest` and set `WindowsAppSDKSelfContained` to `true`; this deploys the matching WinUI and Interactive Experiences input stack together.
 - **Release opens Debug:** the development identity may remain registered to Debug; launch the desired Visual Studio configuration or replace the registration.
 - **FPS is near 60:** presentation is display-synchronized; compare duration, cache/requests, working set, and latency rather than FPS alone.
 

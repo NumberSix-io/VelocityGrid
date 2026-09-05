@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>
   <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework><IsPackable>true</IsPackable><IncludeBuildOutput>false</IncludeBuildOutput>
-  <VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.1</VelocityGridPackageVersion><NuspecFile>VelocityGrid.Native.WinUI.nuspec</NuspecFile><NuspecProperties>version=$(VelocityGridPackageVersion)</NuspecProperties><NoWarn>$(NoWarn);NU5128</NoWarn>
+  <VelocityGridPackageVersion Condition="'$(VelocityGridPackageVersion)' == ''">0.1.0-preview.7</VelocityGridPackageVersion><NuspecFile>VelocityGrid.Native.WinUI.nuspec</NuspecFile><NuspecProperties>version=$(VelocityGridPackageVersion)</NuspecProperties><NoWarn>$(NoWarn);NU5128</NoWarn>
   <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\packages</PackageOutputPath>
 </PropertyGroup><Target Name="ValidateVelocityGridNativePackageInputs" BeforeTargets="Pack">
   <Error Condition="!Exists('..\VelocityGrid.Native\x64\Release\VelocityGrid.Native\VelocityGrid.Native.dll')" Text="Build native Release x64 before packing." />
