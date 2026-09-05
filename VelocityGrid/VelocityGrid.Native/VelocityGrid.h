@@ -178,8 +178,6 @@ namespace winrt::VelocityGrid_Native::implementation
         std::uint64_t m_update_cell_count{};
         std::uint64_t m_update_render_count{};
         std::uint64_t m_last_update_latency_microseconds{};
-        std::uint64_t m_wheel_event_count{};
-        std::int32_t m_last_wheel_delta{};
         bool m_updating_from_interaction_tracker{};
         velocity_grid::interaction_window m_interaction_window{};
         Microsoft::UI::Composition::Interactions::IInteractionTrackerOwner m_interaction_tracker_owner{ nullptr };

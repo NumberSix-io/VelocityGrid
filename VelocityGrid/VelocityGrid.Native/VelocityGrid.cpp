@@ -633,8 +633,6 @@ namespace winrt::VelocityGrid_Native::implementation
                 m_interaction_window, args.Position().y));
         if (std::abs(next - previous) < 0.01) return;
 
-        ++m_wheel_event_count;
-        m_last_wheel_delta = static_cast<std::int32_t>(std::lround(next - previous));
         m_scroll_offset = next;
         m_updating_from_interaction_tracker = true;
         auto const old_slider_value = m_scrollbar.Value();
@@ -1198,9 +1196,8 @@ namespace winrt::VelocityGrid_Native::implementation
         auto const stale = m_external_provider_enabled ? m_external_stale : metrics.stale;
         auto const error = m_last_provider_error.empty() ? L"" : std::format(L" | Error {}", m_last_provider_error.c_str());
         m_diagnostics.Text(std::format(
-            L"Viewport {:L}-{:L} | Wheel {} ({:+}) | Cache {}/{} ({:.0f}%) | Requests {} | Canceled {} | Stale {} | Failed {} | {:.1f} FPS{}",
-            m_viewport.first_row, m_viewport.last_row, m_wheel_event_count, m_last_wheel_delta,
-            m_cache.size(), m_cache.capacity(), hit_rate,
+            L"Viewport {:L}-{:L} | Cache {}/{} ({:.0f}%) | Requests {} | Canceled {} | Stale {} | Failed {} | {:.1f} FPS{}",
+            m_viewport.first_row, m_viewport.last_row, m_cache.size(), m_cache.capacity(), hit_rate,
             requested, canceled, stale, m_external_failed, fps, error));
         if (elapsed >= 1.0)
         {

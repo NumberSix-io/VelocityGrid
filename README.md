@@ -160,7 +160,7 @@ TradesGrid.Columns = columns;
 
 winrt::VelocityGrid_Native::VelocityGrid grid;
 grid.RowHeight(24.0);
-Content(grid.View());
+Content(grid);
 ```
 
 The native ABI is page/batch oriented. C++ applications handle `PageRequested`, then call `CompletePage` once per page. See [NuGet distribution and consumption](docs/nuget-distribution.md#c-winui-3).

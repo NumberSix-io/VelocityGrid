@@ -13,7 +13,7 @@ NuGet versions are immutable: never rebuild or replace a version after uploading
 1. Create or sign in to an account at [nuget.org](https://www.nuget.org/).
 2. Enable two-factor authentication and save the recovery codes.
 3. Make the GitHub repository public before publishing so the package project, documentation, source, and issue links are available to consumers.
-4. Confirm that the three package IDs above are still available by visiting their package URLs or beginning an upload.
+4. Confirm that the intended version is not already published for any of the three existing package IDs.
 5. In the nuget.org account menu, open **API Keys** and create a key:
    - name: `VelocityGrid GitHub Actions`;
    - scope: **Push new packages and package versions**;

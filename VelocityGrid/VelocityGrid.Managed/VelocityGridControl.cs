@@ -4,8 +4,8 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using VelocityGrid_Native;
 
@@ -295,10 +295,12 @@ public sealed class VelocityGridControl : UserControl
         }
         catch (Exception error)
         {
-            // Dispatcher callbacks otherwise turn WinRT activation failures into
-            // native stowed exceptions, terminating the host without a useful
-            // managed stack trace.
-            var details = FormatExceptionDetails(error);
+            // Initialization is deferred to avoid XAML-loader reentrancy, so a
+            // failure cannot be returned through the constructor. Keep the host
+            // alive, expose a concise visual error, and retain full diagnostics
+            // in the debugger output.
+            Debug.WriteLine(error);
+            var details = $"VelocityGrid could not initialize: {error.GetBaseException().Message}";
             Content = new TextBlock
             {
                 Text = details,
@@ -307,23 +309,6 @@ public sealed class VelocityGridControl : UserControl
             };
             AutomationProperties.SetItemStatus(this, details);
         }
-    }
-
-    private static string FormatExceptionDetails(Exception error)
-    {
-        var details = new StringBuilder();
-        for (Exception? current = error; current is not null; current = current.InnerException)
-        {
-            if (details.Length != 0) details.AppendLine().AppendLine("Inner exception:");
-            details.Append(current.GetType().FullName)
-                .Append(" (HRESULT 0x")
-                .Append(current.HResult.ToString("X8"))
-                .AppendLine(")")
-                .AppendLine(current.Message);
-            if (!string.IsNullOrWhiteSpace(current.StackTrace))
-                details.AppendLine(current.StackTrace);
-        }
-        return details.ToString().TrimEnd();
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs args)

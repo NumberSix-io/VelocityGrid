@@ -53,15 +53,35 @@ The host owns the WinUI XAML Island lifecycle and automatically enables Windows 
 
 ## C++/WinRT
 
-Install `VelocityGrid.Native.WinUI`, then use the supplied projection headers:
+For an unpackaged executable, use Microsoft-style self-contained deployment and
+install `VelocityGrid.Native.WinUI`:
+
+```xml
+<PropertyGroup>
+  <UseWinUI>true</UseWinUI>
+  <AppContainerApplication>false</AppContainerApplication>
+  <AppxPackage>false</AppxPackage>
+  <WindowsPackageType>None</WindowsPackageType>
+  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+</PropertyGroup>
+<ItemGroup>
+  <Manifest Include="app.manifest" />
+  <PackageReference Include="VelocityGrid.Native.WinUI" Version="0.1.0-preview.7" />
+</ItemGroup>
+```
+
+Then use the supplied projection headers:
 
 ```cpp
 #include <winrt/VelocityGrid_Native.h>
 
 winrt::VelocityGrid_Native::VelocityGrid grid;
 grid.RowHeight(24.0);
-Content(grid.View());
+Content(grid);
 ```
+
+The package copies the matching native DLL beside C++ executables and merges
+registration-free WinRT activation metadata into the application manifest.
 
 ## Documentation
 

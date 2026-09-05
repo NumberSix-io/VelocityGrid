@@ -2,16 +2,17 @@
 
 ## Unreleased
 
-- Route native wheel and touchpad scrolling through a `ScrollPresenter`-style composition interaction source.
-- Preserve sub-row scrolling precision across ten million rows with a bounded floating-origin interaction window.
-- Document the standard manifest and self-contained Windows App SDK requirements for unpackaged C# WinUI hosts.
-- Add ten-million-row precision and bounded-working-set regression tests.
-
-## [0.1.0-preview.7] - 2026-09-04
+## [0.1.0-preview.7] - 2026-09-05
 
 - Defer managed native-view creation until after parent XAML parsing completes.
 - Add an explicit default-interface creation export for unpackaged managed hosts.
 - Preserve pre-load row, column, provider, and row-height configuration.
+- Route native wheel and touchpad scrolling through a `ScrollPresenter`-style composition interaction source.
+- Preserve sub-row scrolling precision across ten million rows with a bounded floating-origin interaction window.
+- Clip partially visible rows to the data viewport so they cannot paint over the fixed header.
+- Copy the architecture-matched native runtime beside C++ package consumers and merge registration-free activation metadata.
+- Document the standard manifest and self-contained Windows App SDK requirements for unpackaged WinUI hosts.
+- Add ten-million-row precision and bounded-working-set regression tests.
 
 ## [0.1.0-preview.6] - 2026-09-03
 

@@ -6,10 +6,17 @@ param(
 $ErrorActionPreference = "Stop"
 $solutionDirectory = Join-Path $PSScriptRoot "..\VelocityGrid"
 $artifactsDirectory = [IO.Path]::GetFullPath((Join-Path $solutionDirectory "artifacts"))
+$packagesDirectory = [IO.Path]::GetFullPath((Join-Path $artifactsDirectory "packages"))
 $consumerPackageCache = [IO.Path]::GetFullPath((Join-Path $artifactsDirectory "package-cache-$($Version.Replace('.', '_').Replace('-', '_'))"))
-if (-not $consumerPackageCache.StartsWith($artifactsDirectory, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "The consumer package cache must remain inside the artifacts directory."
+foreach ($directory in @($packagesDirectory, $consumerPackageCache)) {
+    if (-not $directory.StartsWith($artifactsDirectory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Generated output must remain inside the artifacts directory: $directory"
+    }
 }
+if (Test-Path -LiteralPath $packagesDirectory) {
+    Remove-Item -LiteralPath $packagesDirectory -Recurse -Force
+}
+New-Item -ItemType Directory -Path $packagesDirectory | Out-Null
 if (Test-Path -LiteralPath $consumerPackageCache) {
     Remove-Item -LiteralPath $consumerPackageCache -Recurse -Force
 }
@@ -44,5 +51,23 @@ if ($LASTEXITCODE -ne 0) { throw "WPF package consumer failed." }
 if ($LASTEXITCODE -ne 0) { throw "C++ package consumer restore failed." }
 & $msbuild (Join-Path $solutionDirectory "PackageTests\Cpp.WinUI\Cpp.WinUI.vcxproj") /m:1 /nr:false /t:Rebuild /p:Configuration=Release /p:Platform=x64 "/p:VelocityGridPackageVersion=$Version" "/p:RestorePackagesPath=$consumerPackageCache" /v:minimal
 if ($LASTEXITCODE -ne 0) { throw "C++ package consumer failed." }
+$cppConsumerRuntime = Join-Path $solutionDirectory "PackageTests\Cpp.WinUI\bin\VelocityGrid.Native.dll"
+if (-not (Test-Path -LiteralPath $cppConsumerRuntime)) {
+    throw "C++ package consumer did not receive the app-local native runtime."
+}
+
+$expectedPackages = @(
+    "VelocityGrid.Native.WinUI.$Version.nupkg",
+    "VelocityGrid.WinUI.$Version.nupkg",
+    "VelocityGrid.WinUI.$Version.snupkg",
+    "VelocityGrid.Wpf.$Version.nupkg",
+    "VelocityGrid.Wpf.$Version.snupkg"
+)
+$actualPackages = @(Get-ChildItem -LiteralPath $packagesDirectory -File | Select-Object -ExpandProperty Name)
+$unexpectedPackages = @($actualPackages | Where-Object { $_ -notin $expectedPackages })
+$missingPackages = @($expectedPackages | Where-Object { $_ -notin $actualPackages })
+if ($unexpectedPackages.Count -ne 0 -or $missingPackages.Count -ne 0) {
+    throw "Unexpected package output. Missing: $($missingPackages -join ', '). Unexpected: $($unexpectedPackages -join ', ')."
+}
 
 Write-Host "VelocityGrid packages $Version are in VelocityGrid\artifacts\packages."

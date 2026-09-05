@@ -10,17 +10,34 @@ namespace VelocityGrid.Managed.Tests
     public partial class UnitTest1
     {
         [UITestMethod]
-        public void NativePropertiesRoundTripThroughManagedControl()
+        public async Task NativePropertiesRoundTripThroughManagedControl()
         {
             var grid = new VelocityGrid.Managed.VelocityGridControl
             {
                 RowCount = 10_000_000,
                 RowHeight = 24
             };
+            var initialized = new TaskCompletionSource();
+            grid.Loaded += (_, _) =>
+            {
+                if (!grid.DispatcherQueue.TryEnqueue(() => initialized.TrySetResult()))
+                    initialized.TrySetException(new InvalidOperationException("Could not queue the initialization check."));
+            };
+            var window = new Microsoft.UI.Xaml.Window { Content = grid };
 
-            Assert.AreEqual(10_000_000, grid.RowCount);
-            Assert.AreEqual(24, grid.RowHeight);
-            Assert.IsNotNull(grid.Content);
+            try
+            {
+                window.Activate();
+                await initialized.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+                Assert.AreEqual(10_000_000, grid.RowCount);
+                Assert.AreEqual(24, grid.RowHeight);
+                Assert.IsInstanceOfType(grid.Content, typeof(VelocityGrid_Native.VelocityGrid));
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [TestMethod]
@@ -213,10 +230,10 @@ namespace VelocityGrid.Managed.Tests
         [TestMethod]
         public void FormattingCatalogueAbiValuesRemainStable()
         {
-            Assert.AreEqual((byte)7, (byte)VelocityGrid.Managed.VelocityGridColor.Red);
-            Assert.AreEqual((byte)25, (byte)VelocityGrid.Managed.VelocityGridColor.Brown);
-            Assert.AreEqual((byte)2, (byte)VelocityGrid.Managed.VelocityGridIcon.DownArrow);
-            Assert.AreEqual((byte)28, (byte)VelocityGrid.Managed.VelocityGridIcon.Edit);
+            Assert.AreEqual((byte)7, Convert.ToByte(VelocityGrid.Managed.VelocityGridColor.Red));
+            Assert.AreEqual((byte)25, Convert.ToByte(VelocityGrid.Managed.VelocityGridColor.Brown));
+            Assert.AreEqual((byte)2, Convert.ToByte(VelocityGrid.Managed.VelocityGridIcon.DownArrow));
+            Assert.AreEqual((byte)28, Convert.ToByte(VelocityGrid.Managed.VelocityGridIcon.Edit));
         }
 
         [UITestMethod]
@@ -253,9 +270,9 @@ namespace VelocityGrid.Managed.Tests
         [TestMethod]
         public void DataChangeKindAbiValuesRemainStable()
         {
-            Assert.AreEqual(0, (int)VelocityGrid.Managed.VelocityGridDataChangeKind.Append);
-            Assert.AreEqual(1, (int)VelocityGrid.Managed.VelocityGridDataChangeKind.TrimEnd);
-            Assert.AreEqual(2, (int)VelocityGrid.Managed.VelocityGridDataChangeKind.Reset);
+            Assert.AreEqual(0, Convert.ToInt32(VelocityGrid.Managed.VelocityGridDataChangeKind.Append));
+            Assert.AreEqual(1, Convert.ToInt32(VelocityGrid.Managed.VelocityGridDataChangeKind.TrimEnd));
+            Assert.AreEqual(2, Convert.ToInt32(VelocityGrid.Managed.VelocityGridDataChangeKind.Reset));
         }
 
     }

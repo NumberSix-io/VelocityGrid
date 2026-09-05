@@ -4,7 +4,7 @@ VelocityGrid publishes three packages with one version:
 
 | Package | Audience | Contents |
 |---|---|---|
-| `VelocityGrid.Native.WinUI` | C++/WinRT and transitive runtime use | WinMD, public projection headers, x86/x64/ARM64 DLLs and PRI files, Windows App SDK/C++/WinRT dependencies |
+| `VelocityGrid.Native.WinUI` | C++/WinRT and transitive runtime use | WinMD, public projection headers, x86/x64/ARM64 DLLs, Windows App SDK/C++/WinRT dependencies, and registration-free activation metadata |
 | `VelocityGrid.WinUI` | C# WinUI 3 | Thin managed control/provider API plus a dependency on the native package |
 | `VelocityGrid.Wpf` | .NET 8 WPF | WPF `HwndHost` adapter plus a dependency on the C# package |
 
@@ -44,7 +44,23 @@ For an unpackaged WPF executable, the package defaults `WindowsPackageType` to `
 
 ## C++ WinUI 3
 
-Install only `VelocityGrid.Native.WinUI`. The package brings compatible Windows App SDK and C++/WinRT build dependencies, and adds its projection header directory automatically:
+Install only `VelocityGrid.Native.WinUI`. For an unpackaged executable, use the normal Microsoft self-contained host declarations:
+
+```xml
+<PropertyGroup>
+  <UseWinUI>true</UseWinUI>
+  <AppContainerApplication>false</AppContainerApplication>
+  <AppxPackage>false</AppxPackage>
+  <WindowsPackageType>None</WindowsPackageType>
+  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+</PropertyGroup>
+<ItemGroup>
+  <Manifest Include="app.manifest" />
+  <PackageReference Include="VelocityGrid.Native.WinUI" Version="0.1.0-preview.7" />
+</ItemGroup>
+```
+
+Use a standard PerMonitorV2 application manifest. The package brings compatible Windows App SDK and C++/WinRT build dependencies, adds its projection header directory, copies the matching native runtime beside the executable, and merges registration-free activation metadata automatically:
 
 ```cpp
 #include <winrt/VelocityGrid_Native.h>
@@ -55,7 +71,7 @@ grid.PageRequested([](int64_t start, int32_t count, uint64_t request, uint64_t g
 {
     // Fetch/flatten count * configuredColumnCount values, then call CompletePage.
 });
-window.Content(grid.View());
+window.Content(grid);
 ```
 
 The ABI deliberately uses WinRT-compatible primitives and parallel arrays. C++ callers can use it directly without loading the managed facade.
